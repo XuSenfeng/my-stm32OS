@@ -44,8 +44,81 @@ typedef unsigned long UBaseType_t;
 	__isb( portSY_FULL_READ_WRITE );											\
 }
 
+/********关闭中断*******/
+#define portDISABLE_INTERRUPTS()				vPortRaiseBASEPRI()
+//在中断中使用
+#define portSET_INTERRUPT_MASK_FROM_ISR()		ulPortRaiseBASEPRI()
 
 
+
+/********开中断********/
+//打开所有中断
+#define portENABLE_INTERRUPTS()					vPortSetBASEPRI( 0 )
+//设置打开的范围
+#define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	vPortSetBASEPRI(x)
+
+
+
+
+
+void vPortExitCritical( void );
+void vPortEnterCritical( void );
+
+
+#define portENTER_CRITICAL()					vPortEnterCritical()
+#define portEXIT_CRITICAL()						vPortExitCritical()
+
+
+
+#define portINLINE __inline
+#ifndef portFORCE_INLINE
+	#define portFORCE_INLINE __forceinline
+#endif
+
+//定义函数为内联函数
+static portFORCE_INLINE void vPortRaiseBASEPRI( void )
+{
+uint32_t ulNewBASEPRI = configMAX_SYSCALL_INTERRUPT_PRIORITY;//这个值为11
+
+	__asm
+	{
+		/* Set BASEPRI to the max syscall priority to effect a critical
+		section. */
+		msr basepri, ulNewBASEPRI
+		dsb
+		isb
+	}
+}
+
+
+static portFORCE_INLINE uint32_t ulPortRaiseBASEPRI( void )
+{
+uint32_t ulReturn, ulNewBASEPRI = configMAX_SYSCALL_INTERRUPT_PRIORITY;
+
+	__asm
+	{
+		/* Set BASEPRI to the max syscall priority to effect a critical
+		section. */
+		mrs ulReturn, basepri
+		msr basepri, ulNewBASEPRI
+		dsb
+		isb
+	}
+
+	return ulReturn;
+}
+
+
+
+static portFORCE_INLINE void vPortSetBASEPRI( uint32_t ulBASEPRI )
+{
+	__asm
+	{
+		/* Barrier instructions are not used as this function is only used to
+		lower the BASEPRI value. */
+		msr basepri, ulBASEPRI
+	}
+}
 
 
 
