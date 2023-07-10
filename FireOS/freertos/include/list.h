@@ -30,7 +30,7 @@ typedef struct xLIST
 }List_t;
 
 //初始化节点拥有者
-#define liseSET_LIST_ITEM_OWNER(pxListItem, pxOwner) 	((pxListItem->pvOwner)=(void *)(pxOwner))
+#define listSET_LIST_ITEM_OWNER(pxListItem, pxOwner) 	((pxListItem)->pvOwner=(void *)(pxOwner))
 //获得节点的拥有者
 #define listGET_ITEM_ITEM_OWNER(pxListItem)  			(pxListItem->pvOwner)
 //初始化节点的排序辅助值
@@ -73,6 +73,7 @@ void vListInitialist(List_t * const pxList);
 void vListInsertEnd(List_t * const pxList, ListItem_t * const pxNewListItem);
 void vListInsert(List_t * const pxList, ListItem_t * const pxNewListItem);
 UBaseType_t uxListRemove(ListItem_t * const pxItemToRemov);
+
 #endif
 
 

@@ -1,10 +1,11 @@
 --cpu Cortex-M3
 ".\objects\main.o"
+".\objects\port.o"
 ".\objects\list.o"
 ".\objects\task.o"
 ".\objects\startup_armcm3.o"
 ".\objects\system_armcm3.o"
---strict --scatter ".\Objects\jiao-freeRTOS.sct"
+--strict --scatter ".\Objects\jiaofreeRTOS.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
---list ".\Listings\jiao-freeRTOS.map" -o .\Objects\jiao-freeRTOS.axf
+--list ".\Listings\jiaofreeRTOS.map" -o .\Objects\jiaofreeRTOS.axf

@@ -1,5 +1,5 @@
 #include "list.h"
-
+#include <stdlib.h>
 
 //节点初始化函数
 void vListInitialiseItem(ListItem_t *const pxItem)

@@ -2,7 +2,9 @@
 #define INC_FREERTOS_H
 
 #include "FreeRTOSConfig.h"
+#include "projdefs.h"
 #include "portable.h"
+
 
 
 #endif /* INC_FREERTOS_H */
