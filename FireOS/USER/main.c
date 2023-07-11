@@ -31,13 +31,15 @@ void Task2_Entry(void *p_arg);
 
 int main(void)
 {
+	//初始化时钟中断
+	vPortSetupTimerInterrupt();
 	prvInitialiseTaskLists();
 	//创建任务
 	Task1_Handle = xTaskCreateStatic(Task1_Entry, "Task1_Entry", TASK1_STACK_SIZE, NULL, Task1Stack, &TASK1_TCB);	
 	vListInsert(&pxReadyTasksLists[1], &TASK1_TCB.xStateListItem);	
 	
 	Task1_Handle = xTaskCreateStatic(Task2_Entry, "Task2_Entry", TASK2_STACK_SIZE, NULL, Task2Stack, &TASK2_TCB);
-	vListInsert(&pxReadyTasksLists[1], &TASK1_TCB.xStateListItem);	
+	vListInsert(&pxReadyTasksLists[1], &TASK2_TCB.xStateListItem);	
 	vTaskStartScheduler();
 
 	for(;;)
@@ -53,11 +55,10 @@ void Task1_Entry(void *p_arg)
 	for(;;)
 	{
 		flag1=1;
-		delay(100);
+		vTaskDelay(2);
 		
 		flag1=0;
-		delay(100);
-		portYIELD();
+		vTaskDelay(2);
 	}
 }
 
@@ -67,12 +68,11 @@ void Task2_Entry(void *p_arg)
 	for(;;)
 	{
 		flag2=1;
-		delay(100);
+		vTaskDelay(2);
 		
 		flag2=0;
-		delay(100);
+		vTaskDelay(2);
 		//进行切换
-		portYIELD();
 	}
 }
 
@@ -81,6 +81,17 @@ void delay(uint32_t count)
 	for(;count !=0;count--);
 }
 
+/**************空闲任务*****************/
+StackType_t IdleTaskStack[configMINIMAL_STACK_SIZE];
+TCB_t IdleTaskTCB;	//控制块
 
+void vApplicationGetIdleTaskMemory( TCB_t **ppxIdleTaskTCBBuffer, 
+                                    StackType_t **ppxIdleTaskStackBuffer, 
+                                    uint32_t *pulIdleTaskStackSize )
+{
+		*ppxIdleTaskTCBBuffer=&IdleTaskTCB;
+		*ppxIdleTaskStackBuffer=IdleTaskStack; 
+		*pulIdleTaskStackSize=configMINIMAL_STACK_SIZE;
+}
 
 

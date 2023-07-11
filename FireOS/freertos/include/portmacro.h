@@ -60,7 +60,7 @@ typedef unsigned long UBaseType_t;
 
 
 
-
+void vPortSetupTimerInterrupt( void );
 void vPortExitCritical( void );
 void vPortEnterCritical( void );
 
@@ -108,7 +108,16 @@ uint32_t ulReturn, ulNewBASEPRI = configMAX_SYSCALL_INTERRUPT_PRIORITY;
 	return ulReturn;
 }
 
-
+static portFORCE_INLINE void vPortClearBASEPRIFromISR( void )
+{
+	__asm
+	{
+		/* Set BASEPRI to 0 so no interrupts are masked.  This function is only
+		used to lower the mask in an interrupt, so memory barriers are not 
+		used. */
+		msr basepri, #0
+	}
+}
 
 static portFORCE_INLINE void vPortSetBASEPRI( uint32_t ulBASEPRI )
 {
@@ -119,7 +128,8 @@ static portFORCE_INLINE void vPortSetBASEPRI( uint32_t ulBASEPRI )
 		msr basepri, ulBASEPRI
 	}
 }
-
+//ø’œ–»ŒŒÒ
+#define portTASK_FUNCTION( vFunction, pvParameters ) void vFunction( void *pvParameters )
 
 
 #endif /* PORTMACRO_H */

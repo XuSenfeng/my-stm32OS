@@ -15,4 +15,10 @@
 #define xPortPendSVHandler   PendSV_Handler
 #define xPortSysTickHandler  SysTick_Handler
 #define vPortSVCHandler      SVC_Handler
+
+#define xPortSysTickHandler  SysTick_Handler
+
+# define configMINIMAL_STACK_SIZE ((unsigned int)128)
+#define configCPU_CLOCK_HZ			( ( unsigned long ) 25000000 )	
+#define configTICK_RATE_HZ			( ( TickType_t ) 100 )
 #endif /* FREERTOS_CONFIG_H */
