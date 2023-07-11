@@ -35,11 +35,11 @@ int main(void)
 	vPortSetupTimerInterrupt();
 	prvInitialiseTaskLists();
 	//创建任务
-	Task1_Handle = xTaskCreateStatic(Task1_Entry, "Task1_Entry", TASK1_STACK_SIZE, NULL, Task1Stack, &TASK1_TCB);	
-	vListInsert(&pxReadyTasksLists[1], &TASK1_TCB.xStateListItem);	
+	Task1_Handle = xTaskCreateStatic(Task1_Entry, "Task1_Entry", TASK1_STACK_SIZE, NULL,2, Task1Stack, &TASK1_TCB);	
+	//vListInsert(&pxReadyTasksLists[1], &TASK1_TCB.xStateListItem);	
 	
-	Task1_Handle = xTaskCreateStatic(Task2_Entry, "Task2_Entry", TASK2_STACK_SIZE, NULL, Task2Stack, &TASK2_TCB);
-	vListInsert(&pxReadyTasksLists[1], &TASK2_TCB.xStateListItem);	
+	Task1_Handle = xTaskCreateStatic(Task2_Entry, "Task2_Entry", TASK2_STACK_SIZE, NULL,2, Task2Stack, &TASK2_TCB);
+	//vListInsert(&pxReadyTasksLists[2], &TASK2_TCB.xStateListItem);	
 	vTaskStartScheduler();
 
 	for(;;)
