@@ -2,21 +2,34 @@
 #include "task.h"
 #include "ARMCM3.h"
 #include "list.h"
-
-
+#include "portmacro.h"
 static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
-
 /*
 *************************************************************************
 *                              宏定义
 *************************************************************************
 */
-
 #define portINITIAL_XPSR			        ( 0x01000000 )
 #define portSTART_ADDRESS_MASK				( ( StackType_t ) 0xfffffffeUL )
 
 
+/* SysTick 配置寄存器 */
+#define portNVIC_SYSTICK_CTRL_REG			( * ( ( volatile uint32_t * ) 0xe000e010 ) )
+#define portNVIC_SYSTICK_LOAD_REG			( * ( ( volatile uint32_t * ) 0xe000e014 ) )
+
+#ifndef configSYSTICK_CLOCK_HZ
+	#define configSYSTICK_CLOCK_HZ configCPU_CLOCK_HZ
+	/* 确保SysTick的时钟与内核时钟一致 */
+	#define portNVIC_SYSTICK_CLK_BIT	( 1UL << 2UL )
+#else
+	#define portNVIC_SYSTICK_CLK_BIT	( 0 )
+#endif
+
+#define portNVIC_SYSTICK_INT_BIT			( 1UL << 1UL )
+#define portNVIC_SYSTICK_ENABLE_BIT			( 1UL << 0UL )
 /* 
+ * 参考资料《STM32F10xxx Cortex-M3 programming manual》4.4.3，百度搜索“PM0056”即可找到这个文档
+ * 在Cortex-M中，内核外设SCB中SHPR3寄存器用于设置SysTick和PendSV的异常优先级
  * System handler priority register 3 (SCB_SHPR3) SCB_SHPR3：0xE000 ED20
  * Bits 31:24 PRI_15[7:0]: Priority of system handler 15, SysTick exception 
  * Bits 23:16 PRI_14[7:0]: Priority of system handler 14, PendSV 
@@ -27,21 +40,6 @@ static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
 #define portNVIC_SYSTICK_PRI				( ( ( uint32_t ) configKERNEL_INTERRUPT_PRIORITY ) << 24UL )
 
 
-#define portNVIC_SYSTICK_CTRL_REG			( * ( ( volatile uint32_t * ) 0xe000e010 ) )
-#define portNVIC_SYSTICK_LOAD_REG			( * ( ( volatile uint32_t * ) 0xe000e014 ) )
-
-#ifndef configSYSTICK_CLOCK_HZ
-	#define configSYSTICK_CLOCK_HZ configCPU_CLOCK_HZ
-	/* Ensure the SysTick is clocked at the same frequency as the core. */
-	#define portNVIC_SYSTICK_CLK_BIT	( 1UL << 2UL )
-#else
-	/* The way the SysTick is clocked is not modified in case it is not the same
-	as the core. */
-	#define portNVIC_SYSTICK_CLK_BIT	( 0 )
-#endif
-
-#define portNVIC_SYSTICK_INT_BIT			( 1UL << 1UL )
-#define portNVIC_SYSTICK_ENABLE_BIT			( 1UL << 0UL )
 
 /*
 *************************************************************************
@@ -51,7 +49,7 @@ static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
 void prvStartFirstTask( void );
 void vPortSVCHandler( void );
 void xPortPendSVHandler( void );
-void vPortSetupTimerInterrupt( void );
+
 
 /*
 *************************************************************************
@@ -67,18 +65,21 @@ static void prvTaskExitError( void )
 
 StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters )
 {
+    /* 异常发生时，自动加载到CPU寄存器的内容 */
 	pxTopOfStack--;
 	*pxTopOfStack = portINITIAL_XPSR;	                                    /* xPSR的bit24必须置1 */
 	pxTopOfStack--;
 	*pxTopOfStack = ( ( StackType_t ) pxCode ) & portSTART_ADDRESS_MASK;	/* PC，即任务入口函数 */
 	pxTopOfStack--;
 	*pxTopOfStack = ( StackType_t ) prvTaskExitError;	                    /* LR，函数返回地址 */
-
 	pxTopOfStack -= 5;	/* R12, R3, R2 and R1 默认初始化为0 */
 	*pxTopOfStack = ( StackType_t ) pvParameters;	                        /* R0，任务形参 */
+    
+    /* 异常发生时，手动加载到CPU寄存器的内容 */    
 	pxTopOfStack -= 8;	/* R11, R10, R9, R8, R7, R6, R5 and R4默认初始化为0 */
 
-	return pxTopOfStack;
+	/* 返回栈顶指针，此时pxTopOfStack指向空闲栈 */
+    return pxTopOfStack;
 }
 
 /*
@@ -90,12 +91,9 @@ StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t px
 
 BaseType_t xPortStartScheduler( void )
 {
-    /* 配置PendSV 和 SysTick 的中断优先级为最低 */
+    /* 配置PendSV 和 SysTick 的中断优先级为最低, 直接控制寄存器实现 */
 	portNVIC_SYSPRI2_REG |= portNVIC_PENDSV_PRI;
 	portNVIC_SYSPRI2_REG |= portNVIC_SYSTICK_PRI;
-    
-    /* 初始化SysTick */
-    vPortSetupTimerInterrupt();
 
 	/* 启动第一个任务，不再返回 */
 	prvStartFirstTask();
@@ -104,16 +102,11 @@ BaseType_t xPortStartScheduler( void )
 	return 0;
 }
 
-/*
-*************************************************************************
-*                              启动第一个任务
-*************************************************************************
-*/
-/*
- * 参考资料《STM32F10xxx Cortex-M3 programming manual》4.4.3，百度搜索“PM0056”即可找到这个文档
- * 在Cortex-M中，内核外设SCB的地址范围为：0xE000ED00-0xE000ED3F
- * 0xE000ED008为SCB外设中SCB_VTOR这个寄存器的地址，里面存放的是向量表的起始地址，即MSP的地址
- */
+///*
+// * 参考资料《STM32F10xxx Cortex-M3 programming manual》4.4.3，百度搜索“PM0056”即可找到这个文档
+// * 在Cortex-M中，内核外设SCB的地址范围为：0xE000ED00-0xE000ED3F
+// * 0xE000ED008为SCB外设中SCB_VTOR这个寄存器的地址，里面存放的是向量表的起始地址，即MSP的地址
+// */
 __asm void prvStartFirstTask( void )
 {
 	PRESERVE8
@@ -139,11 +132,7 @@ __asm void prvStartFirstTask( void )
 	nop
 }
 
-/*
-*************************************************************************
-*                              SVC_Handler
-*************************************************************************
-*/
+//这里是被调用的函数
 __asm void vPortSVCHandler( void )
 {
     extern pxCurrentTCB;
@@ -159,22 +148,15 @@ __asm void vPortSVCHandler( void )
 	mov r0, #0              /* 设置r0的值为0 */
 	msr	basepri, r0         /* 设置basepri寄存器的值为0，即所有的中断都没有被屏蔽 */
 	orr r14, #0xd           /* 当从SVC中断服务退出前,通过向r14寄存器最后4位按位或上0x0D，
-                              使得硬件在退出时使用进程堆栈指针PSP完成出栈操作并返回后进入线程模式、返回Thumb状态 */
+                               使得硬件在退出时使用进程堆栈指针PSP完成出栈操作并返回后进入线程模式、返回Thumb状态 */
     
 	bx r14                  /* 异常返回，这个时候栈中的剩下内容将会自动加载到CPU寄存器：
                                xPSR，PC（任务入口地址），R14，R12，R3，R2，R1，R0（任务的形参）
                                同时PSP的值也将更新，即指向任务栈的栈顶 */
 }
 
-
-/*
-*************************************************************************
-*                              PendSV_Handler
-*************************************************************************
-*/
 __asm void xPortPendSVHandler( void )
 {
-//	extern uxCriticalNesting;
 	extern pxCurrentTCB;
 	extern vTaskSwitchContext;
 
@@ -217,8 +199,6 @@ __asm void xPortPendSVHandler( void )
                                    当新任务的运行地址被出栈到PC寄存器后，新的任务也会被执行。*/
 	nop
 }
-
-
 /*
 *************************************************************************
 *                             临界段相关函数
@@ -244,11 +224,13 @@ void vPortExitCritical( void )
 {
 	//configASSERT( uxCriticalNesting );
 	uxCriticalNesting--;
+    
 	if( uxCriticalNesting == 0 )
 	{
 		portENABLE_INTERRUPTS();
 	}
 }
+
 
 /*
 *************************************************************************
@@ -257,13 +239,15 @@ void vPortExitCritical( void )
 */
 void vPortSetupTimerInterrupt( void )
 {
-    /* Configure SysTick to interrupt at the requested rate. */
+     /* 设置重装载寄存器的值 */
     portNVIC_SYSTICK_LOAD_REG = ( configSYSTICK_CLOCK_HZ / configTICK_RATE_HZ ) - 1UL;
-    portNVIC_SYSTICK_CTRL_REG = ( portNVIC_SYSTICK_CLK_BIT | 
-                                  portNVIC_SYSTICK_INT_BIT | 
-                                  portNVIC_SYSTICK_ENABLE_BIT );
     
-
+    /* 设置系统定时器的时钟等于内核时钟
+       使能SysTick 定时器中断
+       使能SysTick 定时器 */
+    portNVIC_SYSTICK_CTRL_REG = ( portNVIC_SYSTICK_CLK_BIT | 
+                                  portNVIC_SYSTICK_INT_BIT |
+                                  portNVIC_SYSTICK_ENABLE_BIT ); 
 }
 
 /*
@@ -282,4 +266,3 @@ void xPortSysTickHandler( void )
 	/* 开中断 */
     vPortClearBASEPRIFromISR();
 }
-

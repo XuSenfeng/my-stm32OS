@@ -1,51 +1,33 @@
-#ifndef LIST_H
-#define LIST_H
-/*
-************************************************************************
-*                                头文件
-************************************************************************
-*/
+#ifndef __LIST_H
+#define __LIST_H
 #include "FreeRTOS.h"
 
-
-
-/*
-************************************************************************
-*                                结构体定义
-************************************************************************
-*/
-/* 节点结构体定义 */
 struct xLIST_ITEM
 {
-	TickType_t xItemValue;             /* 辅助值，用于帮助节点做顺序排列 */			
-	struct xLIST_ITEM *  pxNext;       /* 指向链表下一个节点 */		
-	struct xLIST_ITEM *  pxPrevious;   /* 指向链表前一个节点 */	
-	void * pvOwner;					   /* 指向拥有该节点的内核对象，通常是TCB */
-	void *  pvContainer;		       /* 指向该节点所在的链表 */
+	TickType_t	xItemValue;				//辅助值
+	struct xLIST_ITEM * pxNext;			//指向下一个节点
+	struct xLIST_ITEM * pxPrevious;		//指向上一个节点
+	void * pvOwner;				//指向拥有该节点的内核对象
+	void * pvCountainer;		//指向节点所在的链表
 };
-typedef struct xLIST_ITEM ListItem_t;  /* 节点数据类型重定义 */
+typedef struct xLIST_ITEM ListItem_t;
 
-
-
-/* mini节点结构体定义，作为双向链表的结尾
-   因为双向链表是首尾相连的，头即是尾，尾即是头 */
+//结尾节点
 struct xMINI_LIST_ITEM
 {
-	TickType_t xItemValue;                      /* 辅助值，用于帮助节点做升序排列 */
-	struct xLIST_ITEM *  pxNext;                /* 指向链表下一个节点 */
-	struct xLIST_ITEM *  pxPrevious;            /* 指向链表前一个节点 */
+	TickType_t	xItemValue;				//辅助值, 帮助节点升序排列
+	struct xLIST_ITEM * pxNext;			//指向上一个节点
+	struct xLIST_ITEM * pxPrevious;		//指向下一个节点
 };
-typedef struct xMINI_LIST_ITEM MiniListItem_t;  /* 最小节点数据类型重定义 */
+typedef struct xMINI_LIST_ITEM MiniListItem_t;
 
-
-/* 链表结构体定义 */
+//初始化最开始的链表
 typedef struct xLIST
 {
-	UBaseType_t uxNumberOfItems;    /* 链表节点计数器 */
-	ListItem_t *  pxIndex;			/* 链表节点索引指针 */
-	MiniListItem_t xListEnd;		/* 链表最后一个节点 */
-} List_t;
-
+	UBaseType_t uxNumberOfItem;		//节点计数器
+	ListItem_t	* pxIndex;			//链表节点索引,用来遍历链表
+	MiniListItem_t xListEnd;		//最后一个节点, 这里创建的是一个实际的类型, 不是指针
+}List_t;
 
 /*
 ************************************************************************
@@ -76,7 +58,7 @@ typedef struct xLIST
 #define listGET_END_MARKER( pxList )	( ( ListItem_t const * ) ( &( ( pxList )->xListEnd ) ) )
 
 /* 判断链表是否为空 */
-#define listLIST_IS_EMPTY( pxList )	( ( BaseType_t ) ( ( pxList )->uxNumberOfItems == ( UBaseType_t ) 0 ) )
+#define listLIST_IS_EMPTY( pxList )	( ( BaseType_t ) ( ( pxList )->uxNumberOfItem == ( UBaseType_t ) 0 ) )
 
 /* 获取链表的节点数 */
 #define listCURRENT_LIST_LENGTH( pxList )	( ( pxList )->uxNumberOfItems )
@@ -99,16 +81,17 @@ typedef struct xLIST
 
 #define listGET_OWNER_OF_HEAD_ENTRY( pxList )  ( (&( ( pxList )->xListEnd ))->pxNext->pvOwner )
 
-/*
-************************************************************************
-*                                函数声明
-************************************************************************
-*/
-void vListInitialise( List_t * const pxList );
-void vListInitialiseItem( ListItem_t * const pxItem );
-void vListInsertEnd( List_t * const pxList, ListItem_t * const pxNewListItem );
-void vListInsert( List_t * const pxList, ListItem_t * const pxNewListItem );
-UBaseType_t uxListRemove( ListItem_t * const pxItemToRemove );
 
-#endif /* LIST_H */
+
+
+void vListInitialiseItem(ListItem_t *const pxItem);
+void vListInitialist(List_t * const pxList);
+void vListInsertEnd(List_t * const pxList, ListItem_t * const pxNewListItem);
+void vListInsert(List_t * const pxList, ListItem_t * const pxNewListItem);
+UBaseType_t uxListRemove(ListItem_t * const pxItemToRemov);
+
+#endif
+
+
+
 

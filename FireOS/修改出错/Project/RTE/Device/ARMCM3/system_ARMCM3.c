@@ -3,10 +3,10 @@
  * @brief    CMSIS Device System Source File for
  *           ARMCM3 Device Series
  * @version  V5.00
- * @date     10. January 2018
+ * @date     07. September 2016
  ******************************************************************************/
 /*
- * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
+ * Copyright (c) 2009-2016 ARM Limited. All rights reserved.
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -30,7 +30,7 @@
  *----------------------------------------------------------------------------*/
 #define  XTAL            ( 5000000UL)      /* Oscillator frequency */
 
-#define  SYSTEM_CLOCK    (5U * XTAL)
+#define  SYSTEM_CLOCK    (5U * XTAL)		//这里的时钟为50MHz
 
 
 /*----------------------------------------------------------------------------

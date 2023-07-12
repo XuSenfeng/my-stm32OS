@@ -3,7 +3,7 @@
  * Auto generated Run-Time-Environment Component Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'Fire_FreeRTOS' 
+ * Project: 'jiao-freeRTOS' 
  * Target:  'Target 1' 
  */
 
