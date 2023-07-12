@@ -383,42 +383,14 @@ void vTaskDelay( const TickType_t xTicksToDelay )
     taskYIELD();
 }
 
-#if 0
-void xTaskIncrementTick( void )
-{
-    TCB_t *pxTCB = NULL;
-    BaseType_t i = 0;
-    
-    const TickType_t xConstTickCount = xTickCount + 1;
-    xTickCount = xConstTickCount;
-    
-    /* 扫描就绪列表中所有线程的remaining_tick，如果不为0，则减1 */
-	for(i=0; i<configMAX_PRIORITIES; i++)
-	{
-        pxTCB = ( TCB_t * ) listGET_OWNER_OF_HEAD_ENTRY( ( &pxReadyTasksLists[i] ) );
-		if(pxTCB->xTicksToDelay > 0)
-		{
-			pxTCB->xTicksToDelay --;
-            
-            /* 延时时间到，将任务就绪 */
-            if( pxTCB->xTicksToDelay ==0 )
-            {
-                //vListInsertEnd( &( pxReadyTasksLists[i] ), &( ((TCB_t *)(&Task1TCB))->xStateListItem ) );
-                taskRECORD_READY_PRIORITY( pxTCB->uxPriority );
-            }
-		}
-	}
-    
-    /* 任务切换 */
-    portYIELD();
-}
 
-#else
-void xTaskIncrementTick( void )
+//void xTaskIncrementTick( void )
+BaseType_t xTaskIncrementTick( void )
 {
 	TCB_t * pxTCB;
-	TickType_t xItemValue;
-
+	TickType_t xItemValue;    
+    BaseType_t xSwitchRequired = pdFALSE;
+    
 	const TickType_t xConstTickCount = xTickCount + 1;
 	xTickCount = xConstTickCount;
 
@@ -456,14 +428,35 @@ void xTaskIncrementTick( void )
 
 				/* 将解除等待的任务添加到就绪列表 */
 				prvAddTaskToReadyList( pxTCB );
+                
+
+                #if (  configUSE_PREEMPTION == 1 )
+                {
+                    if( pxTCB->uxPriority >= pxCurrentTCB->uxPriority )
+                    {
+                        xSwitchRequired = pdTRUE;
+                    }
+                }
+                #endif /* configUSE_PREEMPTION */
 			}
 		}
 	}/* xConstTickCount >= xNextTaskUnblockTime */
     
+    #if ( ( configUSE_PREEMPTION == 1 ) && ( configUSE_TIME_SLICING == 1 ) )
+    {
+        if( listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ pxCurrentTCB->uxPriority ] ) ) 
+                                     > ( UBaseType_t ) 1 )
+        {
+            xSwitchRequired = pdTRUE;
+        }
+    }
+    #endif /* ( ( configUSE_PREEMPTION == 1 ) && ( configUSE_TIME_SLICING == 1 ) ) */
+    
+    return xSwitchRequired;
     /* 任务切换 */
-    portYIELD();
+    //portYIELD();
 }
-#endif
+
 
 static void prvAddCurrentTaskToDelayedList( TickType_t xTicksToWait )
 {

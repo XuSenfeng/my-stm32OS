@@ -29,7 +29,7 @@ void prvInitialiseTaskLists( void );
 void vTaskStartScheduler( void );
 void vTaskSwitchContext( void );
 void vTaskDelay( const TickType_t xTicksToDelay );
-void xTaskIncrementTick( void );
+BaseType_t xTaskIncrementTick( void );
 
                                 
 #endif /* INC_TASK_H */ 
