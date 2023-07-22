@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_HD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\CMSIS;..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\User;..\User\led;..\User\usart;..\User\lcd;..\User\flash;..\User\font</IncludePath>
+              <IncludePath>..\Libraries\CMSIS;..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\User;..\User\led;..\User\usart;..\User\lcd;..\User\flash;..\User\font;..\OS\desktop</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -579,6 +579,13 @@
         </Group>
         <Group>
           <GroupName>XvSenfengOS</GroupName>
+          <Files>
+            <File>
+              <FileName>jiao_dasktop.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\OS\desktop\jiao_dasktop.c</FilePath>
+            </File>
+          </Files>
         </Group>
       </Groups>
     </Target>

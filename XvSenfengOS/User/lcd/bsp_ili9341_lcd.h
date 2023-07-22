@@ -148,6 +148,10 @@ extern uint16_t LCD_X_LENGTH,LCD_Y_LENGTH;
 //参数可选值为0-7
 extern uint8_t LCD_SCAN_MODE;
 
+
+#define RGB888_2_RGB565(R,G,B)		 (uint16_t)(((R /8) << 11) | ((G /4) << 5) | (B /8) )
+
+
 /******************************* 定义 ILI934 显示屏常用颜色 ********************************/
 #define      BACKGROUND		                BLACK   //默认背景颜色
 
@@ -164,6 +168,27 @@ extern uint8_t LCD_SCAN_MODE;
 #define      BRED                          0xF81F
 #define      GRED                          0xFFE0
 #define      GBLUE                         0x07FF
+
+
+
+
+#define COL8_000000		0
+#define COL8_FF0000		1
+#define COL8_00FF00		2
+#define COL8_FFFF00		3
+#define COL8_0000FF		4
+#define COL8_FF00FF		5
+#define COL8_00FFFF		6
+#define COL8_FFFFFF		7
+#define COL8_C6C6C6		8
+#define COL8_840000		9
+#define COL8_008400		10
+#define COL8_848400		11
+#define COL8_000084		12
+#define COL8_840084		13
+#define COL8_008484		14
+#define COL8_848484		15
+
 
 
 
@@ -223,6 +248,8 @@ void ILI9341_DisplayStringEx_YDir(uint16_t x, 		//字符显示位置x
 																			 uint16_t Font_Height,	//要显示的字体高度，注意为偶数
 																			 uint8_t *ptr,					//显示的字符内容
 																			 uint16_t DrawModel);  //是否反色显示
+
+void ILI9341_FillColor ( uint32_t ulAmout_Point, uint16_t usColor );
 
 #endif /* __BSP_ILI9341_ILI9341_H */
 
