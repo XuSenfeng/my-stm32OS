@@ -1819,15 +1819,13 @@ void ILI9341_DisplayStringEx_YDir(uint16_t x, 		//字符显示位置x
 /**
   * @brief  设置英文字体类型
   * @param  fonts: 指定要选择的字体
-	*		参数为以下值之一
-  * 	@arg：Font24x32;
-  * 	@arg：Font16x24;
+  *		参数为以下值之一
   * 	@arg：Font8x16;
   * @retval None
   */
 void LCD_SetFont(sFONT *fonts)
 {
-  LCD_Currentfonts = fonts;
+  LCD_Currentfonts = &Font8x16;
 }
 
 /**

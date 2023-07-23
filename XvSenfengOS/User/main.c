@@ -12,6 +12,7 @@ int main()
 {
 	int i;
 	Hareware_Init();
+	ILI9341_DispString_EN_CH(30, 40, "ÄãºÃ");
 	while(1){
 	XPT2046_TouchEvenHandler();
 		
