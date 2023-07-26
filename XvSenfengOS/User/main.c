@@ -12,10 +12,14 @@ int main()
 {
 	int i;
 	Hareware_Init();
-	ILI9341_DispString_EN_CH(30, 40, "你好");
+#if Jiao_Debug
+
+	printf("**********************************\n\n");
+	test();
+#endif
+	Draw_Mouse(160, 120);
 	while(1){
 	XPT2046_TouchEvenHandler();
-		
 		for(i=0;i<10000;i++);
 		
 	}
@@ -30,7 +34,7 @@ void Hareware_Init(void)
 	printf("你好\n");
 	//初始化屏幕
 	ILI9341_Init();
-	printf("初始化屏幕\n");
+	printf("初始化屏幕,绘制桌面中\n");
 	ILI9341_Clear(0, 0, ILI9341_LESS_PIXEL, ILI9341_MORE_PIXEL);
 	Draw_Dasktop();
 	//从FLASH里获取校正参数，若FLASH无参数，则使用模式3进行校正

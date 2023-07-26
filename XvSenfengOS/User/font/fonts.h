@@ -3,7 +3,7 @@
 
 #include "stm32f10x.h"
 #include "./font/fonts.h"
-
+#include <stdio.h>
 
 
 /** @defgroup FONTS_Exported_Types
@@ -18,7 +18,6 @@ typedef struct _tFont
 } sFONT;
 
 extern sFONT Font8x16;
-extern sFONT Font16x24;
 /*******************中文********** 在显示屏上显示的字符大小 ***************************/
 #define      WIDTH_CH_CHAR		                16	    //中文字符宽度 
 #define      HEIGHT_CH_CHAR		              	16		  //中文字符高度 

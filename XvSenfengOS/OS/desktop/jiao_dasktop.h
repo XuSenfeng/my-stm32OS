@@ -1,26 +1,21 @@
 #ifndef __JIAO_DASKTOP_H__
 #define __JIAO_DASKTOP_H__
-
+#include "jiaoConfig.h"
 #include "./lcd/bsp_ili9341_lcd.h"
-static unsigned char table_rgb[16 * 3] = {
-	0x00, 0x00, 0x00,	/*  0:ü\ */
-	0xff, 0x00, 0x00,	/*  1:ÁÁºì */
-	0x00, 0xff, 0x00,	/*  2:ÂÌ */
-	0xff, 0xff, 0x00,	/*  3:»Æ */
-	0x00, 0x00, 0xff,	/*  4:À¶ */
-	0xff, 0x00, 0xff,	/*  5:×Ï */
-	0x00, 0xff, 0xff,	/*  6:Ç³À¶*/
-	0xff, 0xff, 0xff,	/*  7:°× */
-	0xc6, 0xc6, 0xc6,	/*  8:»Ò */
-	0x84, 0x00, 0x00,	/*  9:°µºì */
-	0x00, 0x84, 0x00,	/* 10:°µ¾v */
-	0x84, 0x84, 0x00,	/* 11:°µ»ÆÉ« */
-	0x00, 0x00, 0x84,	/* 12:°µÇà */
-	0x84, 0x00, 0x84,	/* 13:°µ×Ï */
-	0x00, 0x84, 0x84,	/* 14:°µÀ¶É« */
-	0x84, 0x84, 0x84	/* 15:°µ»ÒÉ« */
-};
 
+struct Mouse_Message
+{
+	uint16_t x_old;
+	uint16_t y_old;
+	uint16_t x;
+	uint16_t y;
+	
+};
+typedef struct Mouse_Message Mouse_Message_Def;
+
+
+void test(void);
 void Draw_Dasktop(void);
+void Draw_Mouse(uint16_t x, uint16_t y);
 
 #endif

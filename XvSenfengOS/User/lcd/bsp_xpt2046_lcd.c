@@ -884,7 +884,7 @@ void XPT2046_TouchEvenHandler(void )
 			
 			//输出调试信息到串口
 			XPT2046_DEBUG("x=%d,y=%d",cinfo.x,cinfo.y);
-			
+			Draw_Mouse(cinfo.x, cinfo.y);
 			//调用触摸被按下时的处理函数，可在该函数编写自己的触摸按下处理过程
 			XPT2046_TouchDown(&cinfo);
 			

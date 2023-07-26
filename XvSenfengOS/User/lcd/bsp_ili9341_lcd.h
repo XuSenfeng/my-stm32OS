@@ -4,7 +4,9 @@
 
 #include "stm32f10x.h"
 #include "./font/fonts.h"
+#include "jiao_dasktop.h"
 
+extern uint16_t table_rgb565[16];
 
 /***************************************************************************************
 2^26 =0X0400 0000 = 64MB,每个 BANK 有4*64MB = 256MB
@@ -203,6 +205,7 @@ extern uint8_t LCD_SCAN_MODE;
 #define     LCDID_ILI9341             0x9341
 #define     LCDID_ST7789V             0x8552
 
+static uint16_t Old_Color[20*40];
 
 /********************************** 声明 ILI934 函数 ***************************************/
 void                     ILI9341_Init                    ( void );
@@ -250,6 +253,15 @@ void ILI9341_DisplayStringEx_YDir(uint16_t x, 		//字符显示位置x
 																			 uint16_t DrawModel);  //是否反色显示
 
 void ILI9341_FillColor ( uint32_t ulAmout_Point, uint16_t usColor );
+void ILI9341_Read_Datas (uint16_t *data, uint16_t usX, uint16_t usY, uint16_t usWidth, uint16_t usHeight );
+
+
+
+/****************************************/
+extern struct Mouse_Message Mouse_def;
+
+void putblock8_8(int pxsize,int pysize, char *buf);
+
 
 #endif /* __BSP_ILI9341_ILI9341_H */
 

@@ -910,7 +910,41 @@ static uint16_t ILI9341_Read_PixelData ( void )
   return ( (usRG&0xF800)| ((usRG<<3)&0x7E0) | (usB>>11) );
 }
 
+/**
+ * @brief  读取 GRAM 的n个像素数据
+ * @param  data :数据存放的数组
+ * @param  usX ：在特定扫描方向下窗口的起点X坐标
+ * @param  usY ：在特定扫描方向下窗口的起点Y坐标
+ * @param  usWidth ：窗口的宽度
+ * @param  usHeight ：窗口的高度
+ * @retval 无
+ */
+void ILI9341_Read_Datas (uint16_t *data, uint16_t usX, uint16_t usY, uint16_t usWidth, uint16_t usHeight )
+{	
+	uint16_t usRG=0, usBR=0 ,usGB=0, i;
+	ILI9341_OpenWindow(usX, usY, usWidth, usHeight);
+	ILI9341_Write_Cmd ( 0x2E );   /* 读数据 */
+	//去掉前一次读取结果
+	ILI9341_Read_Data (); 	      /*FIRST READ OUT DUMMY DATA*/
+	for(i=0; i<((usWidth*usHeight)/2); i++)
+	{
+		//获取红色通道与绿色通道的值
+		usRG = ILI9341_Read_Data ();  	/*READ OUT RED AND GREEN DATA  */
+		usBR = ILI9341_Read_Data ();  		/*READ OUT BLUE DATA*/
+		usGB = ILI9341_Read_Data ();
 
+		data[i*2] = ( ( (usRG&0xF800)| ((usRG<<3)&0x7E0) | (usBR>>11) ) );
+
+		data[i*2+1] = ( ( ((usBR&0xF8)<<8)| ((usGB&0xFc00)>>5) | ((usGB&0xf8))>>3) );
+	}
+	if((usWidth*usHeight)%2)
+	{
+		usRG = ILI9341_Read_Data ();  	/*READ OUT RED AND GREEN DATA  */
+		usBR = ILI9341_Read_Data ();  		/*READ OUT BLUE DATA*/
+		data[usWidth*usHeight-1] = ( (usRG&0xF800)| ((usRG<<3)&0x7E0) | (usBR>>11) );
+	}
+	
+}
 
 /**
  * @brief  获取 ILI9341 显示器上某一个坐标点的像素数据
@@ -1131,7 +1165,6 @@ void ILI9341_DispChar_EN ( uint16_t usX, uint16_t usY, const char cChar )
 	uint8_t  byteCount, bitCount,fontLength;	
 	uint16_t ucRelativePositon;
 	uint8_t *Pfont;
-	
 	//对ascii码表偏移（字模表不包含ASCII表的前32个非图形符号）
 	ucRelativePositon = cChar - ' ';
 	
@@ -1141,12 +1174,14 @@ void ILI9341_DispChar_EN ( uint16_t usX, uint16_t usY, const char cChar )
 	//字模首地址
 	/*ascii码表偏移值乘以每个字模的字节数，求出字模的偏移位置*/
 	Pfont = (uint8_t *)&LCD_Currentfonts->table[ucRelativePositon * fontLength];
-	
+	//记录之前的颜色
+	ILI9341_Read_Datas(Old_Color, usX,usY, LCD_Currentfonts->Width, LCD_Currentfonts->Height);
+
 	//设置显示窗口
 	ILI9341_OpenWindow ( usX, usY, LCD_Currentfonts->Width, LCD_Currentfonts->Height);
 	
 	ILI9341_Write_Cmd ( CMD_SetPixel );			
-
+	
 	//按字节读取字模数据
 	//由于前面直接设置了显示窗口，显示数据会自动换行
 	for ( byteCount = 0; byteCount < fontLength; byteCount++ )
@@ -1157,7 +1192,7 @@ void ILI9341_DispChar_EN ( uint16_t usX, uint16_t usY, const char cChar )
 					if ( Pfont[byteCount] & (0x80>>bitCount) )
 						ILI9341_Write_Data ( CurrentTextColor );			
 					else
-						ILI9341_Write_Data ( CurrentBackColor );
+						ILI9341_Write_Data ( Old_Color[byteCount*8+bitCount] );
 			}	
 	}	
 }
@@ -1281,7 +1316,9 @@ void ILI9341_DispChar_CH ( uint16_t usX, uint16_t usY, uint16_t usChar )
 {
 	uint8_t rowCount, bitCount;
 	uint8_t ucBuffer [ WIDTH_CH_CHAR*HEIGHT_CH_CHAR/8 ];	
-  uint16_t usTemp; 	
+	uint16_t usTemp; 	
+	//记录之前的颜色数据
+	ILI9341_Read_Datas(Old_Color, usX,usY, WIDTH_CH_CHAR, HEIGHT_CH_CHAR);
 
 	//设置显示窗口
 	ILI9341_OpenWindow ( usX, usY, WIDTH_CH_CHAR, HEIGHT_CH_CHAR );
@@ -1303,7 +1340,7 @@ void ILI9341_DispChar_CH ( uint16_t usX, uint16_t usY, uint16_t usChar )
 			if ( usTemp & ( 0x8000 >> bitCount ) )  //高位在前 
 			  ILI9341_Write_Data ( CurrentTextColor );				
 			else
-				ILI9341_Write_Data ( CurrentBackColor );			
+				ILI9341_Write_Data ( Old_Color[rowCount*WIDTH_CH_CHAR+bitCount] );			
 		}		
 	}
 	
@@ -1539,8 +1576,8 @@ void ILI9341_DispString_EN_CH_YDir (  uint16_t usX,uint16_t usY , char * pStr )
 } 
 
 /***********************缩放字体****************************/
-#define ZOOMMAXBUFF 16384
-uint8_t zoomBuff[ZOOMMAXBUFF] = {0};	//用于缩放的缓存，最大支持到128*128
+#define ZOOMMAXBUFF 801
+uint8_t zoomBuff[ZOOMMAXBUFF] = {0};	//用于缩放的缓存，最大支持到20*40
 uint8_t zoomTempBuff[1024] = {0};
 
 /**
@@ -1655,11 +1692,12 @@ void ILI9341_DrawChar_Ex(uint16_t usX, //字符显示位置x
 												uint8_t *c,						//字模数据
 												uint16_t DrawModel)		//是否反色显示
 {
-  uint32_t index = 0, counter = 0;
+	uint32_t index = 0, counter = 0;
+	ILI9341_Read_Datas(Old_Color, usX,usY, Font_width, Font_Height);
 
 	//设置显示窗口
 	ILI9341_OpenWindow ( usX, usY, Font_width, Font_Height);
-	
+
 	ILI9341_Write_Cmd ( CMD_SetPixel );		
 	
 	//按字节读取字模数据
@@ -1673,7 +1711,7 @@ void ILI9341_DrawChar_Ex(uint16_t usX, //字符显示位置x
 					//整个字节值为1表示该像素为笔迹
 					//整个字节值为0表示该像素为背景
 					if ( *c++ == DrawModel )
-						ILI9341_Write_Data ( CurrentBackColor );			
+						ILI9341_Write_Data ( Old_Color[index*Font_width+counter] );			
 					else
 						ILI9341_Write_Data ( CurrentTextColor );
 			}	
@@ -1740,7 +1778,7 @@ void ILI9341_DisplayStringEx(uint16_t x, 		//字符显示位置x
 				Charwidth = Font_width / 2;
 				Ascii = *ptr - 32;
 				//使用16*24字体缩放字模数据
-				ILI9341_zoomChar(16,24,Charwidth,Font_Height,(uint8_t *)&Font16x24.table[Ascii * Font16x24.Height*Font16x24.Width/8],psr,0);
+				ILI9341_zoomChar(8,16,Charwidth,Font_Height,(uint8_t *)&Font8x16.table[Ascii * Font8x16.Height*Font8x16.Width/8],psr,0);
 			  //显示单个字符
 				ILI9341_DrawChar_Ex(x,y,Charwidth,Font_Height,(uint8_t*)&zoomBuff,DrawModel);
 				x+=Charwidth;
@@ -1806,7 +1844,7 @@ void ILI9341_DisplayStringEx_YDir(uint16_t x, 		//字符显示位置x
 				Charwidth = Font_width / 2;
 				Ascii = *ptr - 32;
 				//使用16*24字体缩放字模数据
-				ILI9341_zoomChar(16,24,Charwidth,Font_Height,(uint8_t *)&Font16x24.table[Ascii * Font16x24.Height*Font16x24.Width/8],psr,0);
+				ILI9341_zoomChar(8,16,Charwidth,Font_Height,(uint8_t *)&Font8x16.table[Ascii * Font8x16.Height*Font8x16.Width/8],psr,0);
 			  //显示单个字符
 				ILI9341_DrawChar_Ex(x,y,Charwidth,Font_Height,(uint8_t*)&zoomBuff,DrawModel);
 				y+=Font_Height;
@@ -1895,6 +1933,35 @@ void LCD_ClearLine(uint16_t Line)
   ILI9341_Clear(0,Line,LCD_X_LENGTH,((sFONT *)LCD_GetFont())->Height);	/* 清屏，显示全黑 */
 
 }
+
+
+void putblock8_8(int pxsize,int pysize, char *buf)
+{
+	int x, y;
+	ILI9341_OpenWindow ( Mouse_def.x_old, Mouse_def.y_old, pxsize, pysize );
+	ILI9341_Write_Cmd ( CMD_SetPixel );	
+	uint16_t color;
+	
+	for (x = 0; x < pxsize*pysize; x++)
+	{
+		ILI9341_Write_Data(table_rgb565[COL8_008484]);
+	}
+	
+	ILI9341_OpenWindow ( Mouse_def.x, Mouse_def.y, pxsize, pysize );
+	ILI9341_Write_Cmd ( CMD_SetPixel );	
+
+	for (x = 0; x < pxsize; x++)
+	{
+		for (y = 0; y < pysize; y++)
+		{
+			color=buf[y*pxsize+x];
+			ILI9341_Write_Data ( table_rgb565[color] );
+		}
+	}
+	
+	return;
+}
+
 /*********************end of file*************************/
 
 

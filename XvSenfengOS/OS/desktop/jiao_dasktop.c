@@ -1,21 +1,35 @@
 #include "jiao_dasktop.h"
 
+Mouse_Message_Def Mouse_def;
 
-
-
+uint16_t table_rgb565[16] = {
+	0x0000,	/*  0:黒 */
+	0xf800,	/*  1:亮红 */
+	0x07e0,	/*  2:绿 */
+	0xffe0,	/*  3:黄 */
+	0x001f,	/*  4:蓝 */
+	0xf817,	/*  5:紫 */
+	0x07ff,	/*  6:浅蓝*/
+	0xffff,	/*  7:白 */
+	0xc638,	/*  8:灰 */
+	0x8000,	/*  9:暗红 */
+	0x0420,	/* 10:暗緑 */
+	0x8420,	/* 11:暗黄色 */
+	0x0010,	/* 12:暗青 */
+	0x8010,	/* 13:暗紫 */
+	0x0430,	/* 14:暗蓝色 */
+	0x8430	/* 15:暗灰色 */
+};
+//绘制一个长方形或者一条线
 void boxfill8(unsigned char c, int x0, int y0, int x1, int y1)
 {
-	uint8_t R, G, B;
-	uint16_t color;
-	R=table_rgb[c*3];
-	G=table_rgb[c*3+1];
-	B=table_rgb[c*3+2];
-	color = RGB888_2_RGB565(R, G, B);
+	
 	ILI9341_OpenWindow ( x0, y0, (x1-x0+1), (y1-y0+1) );
-	ILI9341_FillColor ( (x1-x0+1)*(y1-y0+1) ,color);	
+	ILI9341_FillColor ( (x1-x0+1)*(y1-y0+1) ,table_rgb565[c]);
+
 	return;
 }
-
+//绘制桌面
 void Draw_Dasktop(void)
 {
 	int xsize, ysize;
@@ -42,4 +56,83 @@ void Draw_Dasktop(void)
 
 }
 
+#if Jiao_Debug
 
+void test(void)
+{
+	uint16_t data[20];
+	uint8_t i, j;
+
+	for(i=0; i<16; i++)
+	{
+
+		
+			boxfill8(i, i, 10, i, 10);
+		
+	}
+	ILI9341_Read_Datas(data, 0,10, 16, 1);
+
+	for(i=0; i<4; i++)
+	{
+		for(j=0;j<4;j++)
+		{
+			printf("cl%d= 0x%x\t", (i*4+j), data[i*4+j]);
+		}
+		printf("\n");
+	}
+	ILI9341_DispString_EN_CH(0, 220, "jhy焦浩洋");
+	ILI9341_DisplayStringEx(0, 120, 20, 40, "jhy焦浩洋", 0);
+}
+
+void init_mouse_cursor8(char *mouse, char bc)
+/* 初始化鼠标结构体 */
+{
+	static char cursor[16][16] = {
+		"**************..",
+		"*OOOOOOOOOOO*...",
+		"*OOOOOOOOOO*....",
+		"*OOOOOOOOO*.....",
+		"*OOOOOOOO*......",
+		"*OOOOOOO*.......",
+		"*OOOOOOO*.......",
+		"*OOOOOOOO*......",
+		"*OOOO**OOO*.....",
+		"*OOO*..*OOO*....",
+		"*OO*....*OOO*...",
+		"*O*......*OOO*..",
+		"**........*OOO*.",
+		"*..........*OOO*",
+		"............*OO*",
+		".............***"
+	};
+	int x, y;
+
+	for (y = 0; y < 16; y++) {
+		for (x = 0; x < 16; x++) {
+			if (cursor[y][x] == '*') {
+				mouse[y * 16 + x] = COL8_000000;
+			}
+			if (cursor[y][x] == 'O') {
+				mouse[y * 16 + x] = COL8_FFFFFF;
+			}
+			if (cursor[y][x] == '.') {
+				mouse[y * 16 + x] = bc;
+			}
+		}
+	}
+	return;
+}
+
+
+
+void Draw_Mouse(uint16_t x, uint16_t y)
+{
+	char  mouse[16*16];
+	Mouse_def.x_old = Mouse_def.x;
+	Mouse_def.y_old = Mouse_def.y;
+	Mouse_def.x = x;
+	Mouse_def.y = y;
+	init_mouse_cursor8(mouse, COL8_008484);
+	putblock8_8(16, 16, mouse);
+}
+#endif
