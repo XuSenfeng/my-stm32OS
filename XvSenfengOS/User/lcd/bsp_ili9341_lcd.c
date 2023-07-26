@@ -21,6 +21,8 @@
 //调用ILI9341_GramScan函数设置方向时会自动更改
 uint16_t LCD_X_LENGTH = ILI9341_LESS_PIXEL;
 uint16_t LCD_Y_LENGTH = ILI9341_MORE_PIXEL;
+//记录鼠标的参数
+extern Mouse_Message_Def Mouse_def;
 
 //液晶屏扫描模式，本变量主要用于方便选择触摸屏的计算参数
 //参数可选值为0-7
@@ -46,7 +48,8 @@ static void                   ILI9341_SetCursor           ( uint16_t usX, uint16
 void          ILI9341_FillColor           ( uint32_t ulAmout_Point, uint16_t usColor );
 static uint16_t               ILI9341_Read_PixelData      ( void );
 
-
+//保存之前位置的颜色
+uint16_t Old_Color[20*40];
 
 
 /**
@@ -1934,19 +1937,26 @@ void LCD_ClearLine(uint16_t Line)
 
 }
 
-
+/**
+  * @brief  绘制鼠标的图形
+  * @param  鼠标的宽
+  * @param  鼠标的高
+  * @param  鼠标的图形数组坐标,有每一个位置的颜色
+  * @retval None
+  */
 void putblock8_8(int pxsize,int pysize, char *buf)
 {
 	int x, y;
 	ILI9341_OpenWindow ( Mouse_def.x_old, Mouse_def.y_old, pxsize, pysize );
 	ILI9341_Write_Cmd ( CMD_SetPixel );	
 	uint16_t color;
-	
+
 	for (x = 0; x < pxsize*pysize; x++)
 	{
 		ILI9341_Write_Data(table_rgb565[COL8_008484]);
 	}
-	
+	ILI9341_Read_Datas(Old_Color, Mouse_def.x, Mouse_def.y, Mouse_def.Width, Mouse_def.High);
+
 	ILI9341_OpenWindow ( Mouse_def.x, Mouse_def.y, pxsize, pysize );
 	ILI9341_Write_Cmd ( CMD_SetPixel );	
 
@@ -1954,8 +1964,12 @@ void putblock8_8(int pxsize,int pysize, char *buf)
 	{
 		for (y = 0; y < pysize; y++)
 		{
-			color=buf[y*pxsize+x];
-			ILI9341_Write_Data ( table_rgb565[color] );
+
+				color=buf[y*pxsize+x];
+				ILI9341_Write_Data ( table_rgb565[color] );
+
+
+			
 		}
 	}
 	

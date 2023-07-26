@@ -205,7 +205,6 @@ extern uint8_t LCD_SCAN_MODE;
 #define     LCDID_ILI9341             0x9341
 #define     LCDID_ST7789V             0x8552
 
-static uint16_t Old_Color[20*40];
 
 /********************************** ÉùÃ÷ ILI934 º¯Êý ***************************************/
 void                     ILI9341_Init                    ( void );

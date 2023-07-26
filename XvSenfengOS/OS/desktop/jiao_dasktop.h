@@ -5,10 +5,13 @@
 
 struct Mouse_Message
 {
+	uint8_t Width, High;
 	uint16_t x_old;
 	uint16_t y_old;
 	uint16_t x;
 	uint16_t y;
+	char  mouse[16*16];
+	uint16_t Old_color[16*16];
 	
 };
 typedef struct Mouse_Message Mouse_Message_Def;
