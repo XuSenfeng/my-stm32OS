@@ -15,6 +15,7 @@
 #include "bsp_ili9341_lcd.h"
 #include "bsp_xpt2046_lcd.h"
 #include "jiao_dasktop.h"
+#include "bsp_base_tim.h"
 
 void JIAO_OS_Init(void);
 

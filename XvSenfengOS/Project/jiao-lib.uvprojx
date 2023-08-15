@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_HD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\CMSIS;..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\User;..\User\led;..\User\usart;..\User\lcd;..\User\flash;..\User\font;..\OS\desktop;..\OS</IncludePath>
+              <IncludePath>..\Libraries\CMSIS;..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\User;..\User\led;..\User\usart;..\User\lcd;..\User\flash;..\User\font;..\OS\desktop;..\OS;..\User\TIM</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -564,6 +564,11 @@
               <FileName>bsp_ili9341_lcd.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\lcd\bsp_ili9341_lcd.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_base_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\TIM\bsp_base_tim.c</FilePath>
             </File>
           </Files>
         </Group>

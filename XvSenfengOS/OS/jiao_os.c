@@ -7,7 +7,10 @@ extern Mouse_Message_Def Mouse_def;
   */
 static void Hareware_Init(void)
 {
+	//初始化定时器
+	BASIC_TIM_Init();
 	//初始化串口
+
 	USART_Config();
 	LED_GPIO_Config();
 	printf("你好\n");
@@ -38,6 +41,7 @@ void JIAO_OS_Init(void)
 {
 	System_data_Init();
 	Hareware_Init();
+	
 
 }
 

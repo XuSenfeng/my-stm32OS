@@ -3,8 +3,10 @@
 
 int main()
 {
-	int i;
+//	int i;
 	JIAO_OS_Init();
+
+
 #if Jiao_Debug
 
 	printf("**********************************\n\n");
@@ -14,7 +16,8 @@ int main()
 	while(1){
 		//检测触控屏按压事件
 		XPT2046_TouchEvenHandler();
-		
+		__WFI();	//WFI指令进入睡眠
+
 		
 	}
 	

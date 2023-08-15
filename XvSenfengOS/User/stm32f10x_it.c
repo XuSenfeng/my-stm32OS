@@ -24,6 +24,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 #include "bsp_usart.h"
+#include "stm32f10x.h"
+#include "bsp_base_tim.h"
+#include "./lcd/bsp_xpt2046_lcd.h"
+
+extern uint8_t Touch_num;
+uint32_t time=0;
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
   */
@@ -147,13 +153,65 @@ void DEBUG_USART_IRQHandler(void)
 	}
 }
 #endif
+/**
+  * @brief  中断函数,触摸屏按下的时候触发
+  * @param  无
+  * @retval None
+  */
+void EXTI4_IRQHandler(void)
+{
+
+	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
+	{
+
+		printf("Touch_num = %d\n", Touch_num);
+		//使能时钟用来进行消抖
+		TIM_Cmd(BASIC_TIM, ENABLE);
+		//关闭自己的中断
+		EXTI_InitTypeDef EXTI_InitStruct;
+		EXTI_InitStruct.EXTI_Line = EXTI_Line4;	//设置为EXTI0
+		EXTI_InitStruct.EXTI_LineCmd = DISABLE;	//关闭中断
+		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;	//设置为中断
+		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising_Falling;//上升沿触发
+		EXTI_Init(&EXTI_InitStruct);
+
+		EXTI_ClearITPendingBit(EXTI_Line4);
+	}
+}
+
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
 /*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
 /*  available peripheral interrupt handler's name please refer to the startup */
 /*  file (startup_stm32f10x_xx.s).                                            */
 /******************************************************************************/
+/**
+  * @brief  时钟中断函数,触摸屏按下的时候触发
+  * @param  无
+  * @retval None
+  */
+void  BASIC_TIM_IRQHandler (void)
+{
+	if ( TIM_GetITStatus( BASIC_TIM, TIM_IT_Update) != RESET ) 
+	{	
+		//判断现在的时钟触摸屏状态
+		if(XPT2046_PENIRQ_Read() == Bit_RESET)
+		{
+			Touch_num=1;
+		}else
+		{
+			TIM_Cmd(BASIC_TIM, DISABLE);
+			EXTI_InitTypeDef EXTI_InitStruct;
+			EXTI_InitStruct.EXTI_Line = EXTI_Line4;	//设置为EXTI0
+			EXTI_InitStruct.EXTI_LineCmd = ENABLE;	//关闭中断
+			EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;	//设置为中断
+			EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising_Falling;//上升沿触发
+			EXTI_Init(&EXTI_InitStruct);
+		}
 
+		TIM_ClearITPendingBit(BASIC_TIM , TIM_FLAG_Update);  		 
+	}		 	
+}
 /**
   * @brief  This function handles PPP interrupt request.
   * @param  None

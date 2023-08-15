@@ -23,6 +23,8 @@
 #include <stdio.h> 
 #include <string.h>
 
+uint8_t Touch_num=0;
+
 /******************************* 声明 XPT2046 相关的静态函数 ***************************/
 static void                   XPT2046_DelayUS                       ( __IO uint32_t ulCount );
 static void                   XPT2046_WriteCMD                      ( uint8_t ucCmd );
@@ -50,7 +52,17 @@ strType_XPT2046_TouchPara strXPT2046_TouchPara[] = {
 
 volatile uint8_t ucXPT2046_TouchFlag = 0;
 
-
+static void EXTI_NVIC_Config(void)
+{
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+	
+	NVIC_InitTypeDef NVIC_InitStructure;
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+}
 
 /**
   * @brief  XPT2046 初始化函数
@@ -65,8 +77,10 @@ void XPT2046_Init ( void )
 
   /* 开启GPIO时钟 */
   RCC_APB2PeriphClockCmd ( XPT2046_SPI_GPIO_CLK|XPT2046_PENIRQ_GPIO_CLK, ENABLE );
-
-  /* 模拟SPI GPIO初始化 */          
+  
+	EXTI_NVIC_Config();
+  
+	/* 模拟SPI GPIO初始化 */          
   GPIO_InitStructure.GPIO_Pin=XPT2046_SPI_CLK_PIN;
   GPIO_InitStructure.GPIO_Speed=GPIO_Speed_10MHz ;	  
   GPIO_InitStructure.GPIO_Mode=GPIO_Mode_Out_PP;
@@ -90,10 +104,19 @@ void XPT2046_Init ( void )
 								
 	//触摸屏触摸信号指示引脚，不使用中断
   GPIO_InitStructure.GPIO_Pin = XPT2046_PENIRQ_GPIO_PIN;       
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;	 // 上拉输入
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;	 // 上拉输入
   GPIO_Init(XPT2046_PENIRQ_GPIO_PORT, &GPIO_InitStructure);
 
-		
+	//复用引脚,选择输入线
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOE, GPIO_PinSource4);
+	//初始化引脚
+	EXTI_InitTypeDef EXTI_InitStruct;
+	EXTI_InitStruct.EXTI_Line = EXTI_Line4;	//设置为EXTI0
+	EXTI_InitStruct.EXTI_LineCmd = ENABLE;	//使能
+	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;	//设置为中断
+	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising_Falling;//上升沿触发
+	EXTI_Init(&EXTI_InitStruct);
 }
 
 
@@ -875,7 +898,7 @@ void XPT2046_TouchEvenHandler(void )
 {
 	  static strType_XPT2046_Coordinate cinfo={-1,-1,-1,-1};
 	
-		if(XPT2046_TouchDetect() == TOUCH_PRESSED)
+		if( Touch_num)
 		{
 			LED_GREEN;
 			
@@ -890,7 +913,7 @@ void XPT2046_TouchEvenHandler(void )
 			
 			/*更新触摸信息到pre xy*/
 			cinfo.pre_x = cinfo.x; cinfo.pre_y = cinfo.y;  
-
+			Touch_num=0;
 		}
 		else
 		{
@@ -900,10 +923,10 @@ void XPT2046_TouchEvenHandler(void )
 			XPT2046_TouchUp(&cinfo); 
 			
 			/*触笔释放，把 xy 重置为负*/
-			cinfo.x = -1;
-			cinfo.y = -1; 
-			cinfo.pre_x = -1;
-			cinfo.pre_y = -1;
+//			cinfo.x = -1;
+//			cinfo.y = -1; 
+//			cinfo.pre_x = -1;
+//			cinfo.pre_y = -1;
 		}
 
 }
