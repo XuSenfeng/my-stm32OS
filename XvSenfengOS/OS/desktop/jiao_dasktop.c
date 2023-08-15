@@ -1,7 +1,8 @@
 #include "jiao_dasktop.h"
 
-
+//保存原本的颜色
 extern uint16_t Old_Color[20*40];
+//初始化一个鼠标为全局变量
 Mouse_Message_Def Mouse_def;
 //这里是操作系统使用的颜色的RGB565格式
 uint16_t table_rgb565[16] = {
@@ -22,7 +23,7 @@ uint16_t table_rgb565[16] = {
 	0x0430,	/* 14:暗蓝色 */
 	0x8430	/* 15:暗灰色 */
 };
-//
+
 /**
   * @brief  绘制一个长方形或者一条线
   * @param  设置颜的
@@ -48,8 +49,8 @@ void boxfill8(unsigned char c, int x0, int y0, int x1, int y1)
 void Draw_Dasktop(void)
 {
 	int xsize, ysize;
-	xsize =320;
-	ysize = 240;
+	xsize =ILI9341_MORE_PIXEL;
+	ysize = ILI9341_LESS_PIXEL;
 	//ILI9341_GramScan(3);
 	boxfill8(COL8_008484,  0,         0,          xsize, ysize - 29);
 	boxfill8(COL8_C6C6C6,  0,         ysize - 28, xsize -  1, ysize - 28);
@@ -67,9 +68,7 @@ void Draw_Dasktop(void)
 	boxfill8(COL8_848484, xsize - 47, ysize - 23, xsize - 47, ysize -  4);
 	boxfill8(COL8_FFFFFF, xsize - 47, ysize -  3, xsize -  4, ysize -  3);
 	boxfill8(COL8_FFFFFF, xsize -  3, ysize - 24, xsize -  3, ysize -  3);
-	//
-	Mouse_def.Width = 16;
-	Mouse_def.High = 16;
+
 
 }
 
@@ -136,12 +135,12 @@ void Draw_Mouse(uint16_t x, uint16_t y)
 	Mouse_def.x = x;
 	Mouse_def.y = y;
 	init_mouse_cursor8(Mouse_def.mouse);
-	putblock8_8(16, 16, Mouse_def.mouse);
+	putblock8_8(Mouse_def.Width, Mouse_def.High, Mouse_def.mouse);
 }
 
 #if Jiao_Debug
 /**
-  * @brief  设置函数
+  * @brief  测试函数可以修改这个宏进行设置是否进行测试
   * @param  无
   * @retval None
   */
@@ -151,9 +150,7 @@ void test(void)
 	uint8_t i, j;
 
 	for(i=0; i<16; i++)
-	{
-
-		
+	{	
 			boxfill8(i, i, 10, i, 10);
 		
 	}
@@ -167,6 +164,7 @@ void test(void)
 		}
 		printf("\n");
 	}
+	//显示文字
 	ILI9341_DispString_EN_CH(0, 220, "jhy焦浩洋");
 	ILI9341_DisplayStringEx(0, 120, 20, 40, "jhy焦浩洋", 0);
 }

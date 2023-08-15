@@ -585,6 +585,11 @@
               <FileType>1</FileType>
               <FilePath>..\OS\desktop\jiao_dasktop.c</FilePath>
             </File>
+            <File>
+              <FileName>jiao_os.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\OS\jiao_os.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
