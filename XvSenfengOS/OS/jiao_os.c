@@ -35,6 +35,8 @@ static void System_data_Init(void)
 	//初始化鼠标的数据
 	Mouse_def.Width = MOUSE_WIDTH;
 	Mouse_def.High = MOUSE_HIGH;
+	init_mouse_cursor8(Mouse_def.mouse);
+
 }
 
 void JIAO_OS_Init(void)

@@ -27,5 +27,6 @@ typedef struct Mouse_Message Mouse_Message_Def;
 void test(void);
 void Draw_Dasktop(void);
 void Draw_Mouse(uint16_t x, uint16_t y);
+void init_mouse_cursor8(char *mouse);
 
 #endif

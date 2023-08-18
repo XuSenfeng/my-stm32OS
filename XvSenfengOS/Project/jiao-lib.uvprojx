@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_HD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\CMSIS;..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\User;..\User\led;..\User\usart;..\User\lcd;..\User\flash;..\User\font;..\OS\desktop;..\OS;..\User\TIM</IncludePath>
+              <IncludePath>..\Libraries\CMSIS;..\Libraries\STM32F10x_StdPeriph_Driver\inc;..\User;..\User\led;..\User\usart;..\User\lcd;..\User\flash;..\User\font;..\OS\desktop;..\OS;..\User\TIM;..\OS\DataStructure</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -594,6 +594,11 @@
               <FileName>jiao_os.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\OS\jiao_os.c</FilePath>
+            </File>
+            <File>
+              <FileName>jiao_FIFO.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\OS\DataStructure\jiao_FIFO.c</FilePath>
             </File>
           </Files>
         </Group>
