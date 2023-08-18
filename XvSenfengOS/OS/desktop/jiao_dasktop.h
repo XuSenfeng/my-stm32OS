@@ -2,8 +2,16 @@
 #define __JIAO_DASKTOP_H__
 #include "jiaoConfig.h"
 #include "./lcd/bsp_ili9341_lcd.h"
+#include "bsp_spi_flash.h"
 #define MOUSE_WIDTH	16
 #define MOUSE_HIGH	16
+
+
+
+#define 							DASKTOP_SHEET_FLAG_ADDR						(512*4096-1)
+#define								DASKTOP_SHEET_ADDR							(512*4096)
+
+
 
 /*鼠标结构体*/
 struct Mouse_Message

@@ -41,6 +41,37 @@ void boxfill8(unsigned char c, int x0, int y0, int x1, int y1)
 
 	return;
 }
+
+/**
+  * @brief  进行桌面图像的保存
+  * @param  起始的位置x
+  * @param  起始的位置y
+  * @param  结束的位置x
+  * @param  结束的位置y
+  * @retval None
+  */
+void flish_boxfill8(int x0, int y0, int x1, int y1)
+{
+	
+	uint16_t Color_Data[ILI9341_MORE_PIXEL], high, width, i;
+	high = y1-y0+1;
+	width = x1-x0+1;
+	for(i=0;i<high;i++)
+	{
+		//读取最初始时候的颜色
+		ILI9341_Read_Datas(Color_Data, x0, y0+i, width, 1);
+		//这里由于每一个颜色是两个位, 所以计算的时候需要乘以2
+		SPI_FLASH_BufferWrite((uint8_t *)Color_Data, (DASKTOP_SHEET_ADDR + (x0 + (y0+i) * ILI9341_MORE_PIXEL)*2), width*2);
+		printf("写入%d\n", i);
+	}
+	
+	
+	
+
+
+	return;
+}
+
 /**
   * @brief  绘制桌面, 初始化鼠标
   * @param  无
@@ -48,10 +79,16 @@ void boxfill8(unsigned char c, int x0, int y0, int x1, int y1)
   */
 void Draw_Dasktop(void)
 {
+	//桌面的长宽, 以及Flash里面是否有桌面的图层存在的标志
 	int xsize, ysize;
+	uint32_t i;
+	uint8_t Dasktop_Flash_flag;
 	xsize =ILI9341_MORE_PIXEL;
 	ysize = ILI9341_LESS_PIXEL;
+	//读取Flash里面图层是否保存的初始化信息
+	SPI_FLASH_BufferRead(&Dasktop_Flash_flag,DASKTOP_SHEET_FLAG_ADDR,1);
 	//ILI9341_GramScan(3);
+	//初始化桌面
 	boxfill8(COL8_008484,  0,         0,          xsize, ysize - 29);
 	boxfill8(COL8_C6C6C6,  0,         ysize - 28, xsize -  1, ysize - 28);
 	boxfill8(COL8_FFFFFF,  0,         ysize - 27, xsize -  1, ysize - 27);
@@ -68,8 +105,27 @@ void Draw_Dasktop(void)
 	boxfill8(COL8_848484, xsize - 47, ysize - 23, xsize - 47, ysize -  4);
 	boxfill8(COL8_FFFFFF, xsize - 47, ysize -  3, xsize -  4, ysize -  3);
 	boxfill8(COL8_FFFFFF, xsize -  3, ysize - 24, xsize -  3, ysize -  3);
+	
+	
+	if((Dasktop_Flash_flag==0x32) & (~RELOAD_FLASH_SHEET))
+	{
+		printf("已经初始化桌面的图层\n");
+	}else
+	{
+		Dasktop_Flash_flag=0x32;
+		printf("没有初始化桌面的图层, 即将进行初始化, result = %#x\n", Dasktop_Flash_flag);
+		SPI_FLASH_SectorErase(DASKTOP_SHEET_ADDR-256);
+		SPI_FLASH_BufferWrite(&Dasktop_Flash_flag,DASKTOP_SHEET_FLAG_ADDR,1);
+		for(i=0;i<1024;i++)
+		{	
+			//对相应的位置进行清除
+			SPI_FLASH_SectorErase(DASKTOP_SHEET_ADDR + i*SPI_FLASH_PageSize);
+			printf("擦除%d\n", i);
 
-
+		}
+		flish_boxfill8(0, 0, ILI9341_MORE_PIXEL, ILI9341_LESS_PIXEL);
+		
+	}
 }
 
 /**
@@ -150,8 +206,8 @@ void Draw_Mouse(uint16_t x, uint16_t y)
 void test(void)
 {
 	uint16_t data[20];
-	uint8_t i, j;
-
+	uint16_t i, j;
+	uint16_t Color_Data[ILI9341_MORE_PIXEL];
 	for(i=0; i<16; i++)
 	{	
 			boxfill8(i, i, 10, i, 10);
@@ -170,5 +226,20 @@ void test(void)
 	//显示文字
 	ILI9341_DispString_EN_CH(0, 220, "jhy焦浩洋");
 	ILI9341_DisplayStringEx(0, 120, 20, 40, "jhy焦浩洋", 0);
+	//测试,读取Flash里面的图形, 进行重新绘制, 检测写入是否成功
+	for(i=0;i<ILI9341_LESS_PIXEL;i++)
+	{
+		
+		SPI_FLASH_BufferRead((uint8_t *)Color_Data, (DASKTOP_SHEET_ADDR + i*ILI9341_MORE_PIXEL*2), (ILI9341_MORE_PIXEL*2));
+		
+		ILI9341_OpenWindow ( 0, i, ILI9341_MORE_PIXEL, 1 );
+		ILI9341_Write_Cmd ( CMD_SetPixel );	
+		
+		for ( j = 0; j < ILI9341_MORE_PIXEL; j ++ )
+			ILI9341_Write_Data ( Color_Data[j] );
+		printf("重新绘制%d\n", i);
+	}
+	
+	
 }
 #endif

@@ -37,8 +37,8 @@ static sFONT *LCD_Currentfonts = &Font8x16;  //英文字体
 static uint16_t CurrentTextColor   = BLACK;//前景色
 static uint16_t CurrentBackColor   = WHITE;//背景色
 
-static __inline void                 ILI9341_Write_Cmd           ( uint16_t usCmd );
-static __inline void                 ILI9341_Write_Data          ( uint16_t usData );
+__inline void                 ILI9341_Write_Cmd           ( uint16_t usCmd );
+__inline void                 ILI9341_Write_Data          ( uint16_t usData );
 static __inline uint16_t             ILI9341_Read_Data           ( void );
 static void                   ILI9341_Delay               ( __IO uint32_t nCount );
 static void                   ILI9341_GPIO_Config         ( void );
@@ -57,7 +57,7 @@ uint16_t Old_Color[20*40];
   * @param  usCmd :要写入的命令（表寄存器地址）
   * @retval 无
   */	
-static __inline void ILI9341_Write_Cmd ( uint16_t usCmd )
+void ILI9341_Write_Cmd ( uint16_t usCmd )
 {
 	* ( __IO uint16_t * ) ( FSMC_Addr_ILI9341_CMD ) = usCmd;
 	
@@ -69,7 +69,7 @@ static __inline void ILI9341_Write_Cmd ( uint16_t usCmd )
   * @param  usData :要写入的数据
   * @retval 无
   */	
-static __inline void ILI9341_Write_Data ( uint16_t usData )
+void ILI9341_Write_Data ( uint16_t usData )
 {
 	* ( __IO uint16_t * ) ( FSMC_Addr_ILI9341_DATA ) = usData;
 	

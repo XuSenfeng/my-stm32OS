@@ -253,6 +253,8 @@ void ILI9341_DisplayStringEx_YDir(uint16_t x, 		//×Ö·ûÏÔÊ¾Î»ÖÃx
 
 void ILI9341_FillColor ( uint32_t ulAmout_Point, uint16_t usColor );
 void ILI9341_Read_Datas (uint16_t *data, uint16_t usX, uint16_t usY, uint16_t usWidth, uint16_t usHeight );
+void ILI9341_Write_Cmd ( uint16_t usCmd );
+void ILI9341_Write_Data ( uint16_t usData );
 
 
 

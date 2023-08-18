@@ -1,5 +1,8 @@
 #include "jiao_os.h"
 extern Mouse_Message_Def Mouse_def;
+
+
+
 /**
   * @brief  初始化硬件进行绘制桌面
   * @param  无
@@ -16,13 +19,15 @@ static void Hareware_Init(void)
 	printf("你好\n");
 	//初始化屏幕
 	ILI9341_Init();
+	XPT2046_Init();
+	printf("初始化触摸屏, 同时初始化SPIFlash\n");
+	//从FLASH里获取校正参数，若FLASH无参数，则使用模式3进行校正
+	Calibrate_or_Get_TouchParaWithFlash(3,0);
 	printf("初始化屏幕,绘制桌面中\n");
 	ILI9341_Clear(0, 0, ILI9341_LESS_PIXEL, ILI9341_MORE_PIXEL);
 	Draw_Dasktop();
-	//从FLASH里获取校正参数，若FLASH无参数，则使用模式3进行校正
-	Calibrate_or_Get_TouchParaWithFlash(3,0);
-	XPT2046_Init();
-	printf("初始化触摸屏\n");
+
+
 }
 
 /**
