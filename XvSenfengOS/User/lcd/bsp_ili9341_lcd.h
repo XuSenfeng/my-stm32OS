@@ -261,7 +261,7 @@ void ILI9341_Write_Data ( uint16_t usData );
 /****************************************/
 extern struct Mouse_Message Mouse_def;
 
-void putblock8_8(int pxsize,int pysize, char *buf);
+void putblock8_8(uint16_t x0, uint16_t y0, int pxsize,int pysize, char *buf);
 
 
 #endif /* __BSP_ILI9341_ILI9341_H */

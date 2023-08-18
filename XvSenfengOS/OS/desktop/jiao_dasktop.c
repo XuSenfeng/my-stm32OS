@@ -191,10 +191,9 @@ void Draw_Mouse(uint16_t x, uint16_t y)
 	Mouse_def.x_old = Mouse_def.x;
 	Mouse_def.y_old = Mouse_def.y;
 	//获取之前的颜色数据
-	ILI9341_Read_Datas(Mouse_def.Old_color, x, y, Mouse_def.Width, Mouse_def.High);
 	Mouse_def.x = x;
 	Mouse_def.y = y;
-	putblock8_8(Mouse_def.Width, Mouse_def.High, Mouse_def.mouse);
+	putblock8_8(x, y, Mouse_def.Width, Mouse_def.High, Mouse_def.mouse);
 }
 
 #if Jiao_Debug
@@ -227,6 +226,9 @@ void test(void)
 	ILI9341_DispString_EN_CH(0, 220, "jhy焦浩洋");
 	ILI9341_DisplayStringEx(0, 120, 20, 40, "jhy焦浩洋", 0);
 	//测试,读取Flash里面的图形, 进行重新绘制, 检测写入是否成功
+	
+	for(i=0;i<0xffff;i++)
+		for(j=0;j<0xff;j++);
 	for(i=0;i<ILI9341_LESS_PIXEL;i++)
 	{
 		

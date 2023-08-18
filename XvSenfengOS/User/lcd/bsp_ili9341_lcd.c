@@ -1944,29 +1944,42 @@ void LCD_ClearLine(uint16_t Line)
   * @param  鼠标的图形数组坐标,有每一个位置的颜色
   * @retval None
   */
-void putblock8_8(int pxsize,int pysize, char *buf)
+void putblock8_8(uint16_t x0, uint16_t y0, int pxsize,int pysize, char *buf)
 {
 	int x, y;
-	ILI9341_OpenWindow ( Mouse_def.x_old, Mouse_def.y_old, pxsize, pysize );
-	ILI9341_Write_Cmd ( CMD_SetPixel );	
+	uint16_t Color_Data[16];
 	uint16_t color;
+	//在鼠标之前的位置进行绘制
+	ILI9341_OpenWindow ( Mouse_def.x_old, Mouse_def.y_old, pxsize, pysize );
+	ILI9341_Write_Cmd ( CMD_SetPixel );
 
-	for (x = 0; x < pxsize*pysize; x++)
+	for (y = 0; y < pysize; y++)
 	{
-		ILI9341_Write_Data(table_rgb565[COL8_008484]);
-	}
-	ILI9341_Read_Datas(Old_Color, Mouse_def.x, Mouse_def.y, Mouse_def.Width, Mouse_def.High);
+		SPI_FLASH_BufferRead((uint8_t *)Color_Data, (DASKTOP_SHEET_ADDR + ((y+Mouse_def.y_old)*ILI9341_MORE_PIXEL + Mouse_def.x_old)*2), 32);
 
+		for (x = 0; x < pxsize; x++){
+
+			ILI9341_Write_Data(Color_Data[x]);
+		}
+	}
+	//绘制新的鼠标
 	ILI9341_OpenWindow ( Mouse_def.x, Mouse_def.y, pxsize, pysize );
 	ILI9341_Write_Cmd ( CMD_SetPixel );	
 
-	for (x = 0; x < pxsize; x++)
+	for (y = 0; y < pysize; y++)
 	{
-		for (y = 0; y < pysize; y++)
+		SPI_FLASH_BufferRead((uint8_t *)Color_Data, (DASKTOP_SHEET_ADDR + ((y0+y)*ILI9341_MORE_PIXEL + x0)*2), 32);
+		for (x = 0; x < pxsize; x++)
 		{
 
 				color=buf[y*pxsize+x];
-				ILI9341_Write_Data ( table_rgb565[color] );
+				if(table_rgb565[color]!=table_rgb565[COL8_008484])	
+					ILI9341_Write_Data ( table_rgb565[color] );
+				else{
+					
+					ILI9341_Write_Data ( Color_Data[x] );
+
+				}
 
 
 			

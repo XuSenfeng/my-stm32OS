@@ -26,7 +26,6 @@ struct Mouse_Message
 	uint16_t y;
 	//保存鼠标的位置的颜色信息, 用于鼠标移动之后的设置
 	char  mouse[MOUSE_WIDTH*MOUSE_HIGH];
-	uint16_t Old_color[MOUSE_WIDTH*MOUSE_HIGH];
 	
 };
 typedef struct Mouse_Message Mouse_Message_Def;
