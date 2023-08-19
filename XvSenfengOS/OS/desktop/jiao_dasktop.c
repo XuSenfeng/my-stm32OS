@@ -184,13 +184,12 @@ void init_mouse_cursor8(char *mouse)
   */
 void Draw_Mouse(uint16_t x, uint16_t y)
 {
-	if(y>(ILI9341_LESS_PIXEL-16))
-		y=(ILI9341_LESS_PIXEL-16);
-	if(x>(ILI9341_MORE_PIXEL-16))
-		x=(ILI9341_MORE_PIXEL-16);	
+	if(y>(ILI9341_LESS_PIXEL-1))
+		y=(ILI9341_LESS_PIXEL-1);
+	if(x>(ILI9341_MORE_PIXEL-1))
+		x=(ILI9341_MORE_PIXEL-1);
 	Mouse_def.x_old = Mouse_def.x;
 	Mouse_def.y_old = Mouse_def.y;
-	//获取之前的颜色数据
 	Mouse_def.x = x;
 	Mouse_def.y = y;
 	putblock8_8(x, y, Mouse_def.Width, Mouse_def.High, Mouse_def.mouse);

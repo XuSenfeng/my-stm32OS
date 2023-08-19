@@ -164,7 +164,6 @@ void EXTI4_IRQHandler(void)
 	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
 	{
 
-		printf("Touch_num = %d\n", Touch_num);
 		//使能时钟用来进行消抖
 		TIM_Cmd(BASIC_TIM, ENABLE);
 		//关闭自己的中断
