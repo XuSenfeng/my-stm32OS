@@ -1,5 +1,8 @@
 #include "jiao_dasktop.h"
 
+extern struct SHTCTL ctl;
+extern struct SHEET * Mouse_sht;
+
 //保存原本的颜色
 extern uint16_t Old_Color[20*40];
 //初始化一个鼠标为全局变量
@@ -38,10 +41,28 @@ void boxfill8(unsigned char c, int x0, int y0, int x1, int y1)
 	
 	ILI9341_OpenWindow ( x0, y0, (x1-x0+1), (y1-y0+1) );
 	ILI9341_FillColor ( (x1-x0+1)*(y1-y0+1) ,table_rgb565[c]);
-
-	return;
 }
 
+/**
+  * @brief  绘制一个长方形或者一条线
+  * @param  设置颜的数组
+  * @param  起始的位置x
+  * @param  起始的位置y
+  * @param  结束的位置x
+  * @param  结束的位置y
+  * @retval None
+  */
+void boxfill_buf(uint16_t *buf, int x0, int y0, int width, int height)
+{
+	uint32_t i;
+	ILI9341_OpenWindow ( x0, y0, width, height);
+	
+	ILI9341_Write_Cmd ( CMD_SetPixel );	
+	for(i=0;i<height*width;i++)
+	{
+		ILI9341_Write_Data(buf[i]);
+	}
+}
 /**
   * @brief  进行桌面图像的保存
   * @param  起始的位置x
@@ -134,7 +155,7 @@ void Draw_Dasktop(void)
   * @param  绘制的时候背景的颜色
   * @retval None
   */
-void init_mouse_cursor8(char *mouse)
+void init_mouse_cursor8(uint16_t *mouse)
 /* 初始化鼠标结构体 */
 {
 
@@ -161,13 +182,13 @@ void init_mouse_cursor8(char *mouse)
 	for (y = 0; y < 16; y++) {
 		for (x = 0; x < 16; x++) {
 			if (cursor[y][x] == '*') {
-				mouse[y * 16 + x] = COL8_000000;
+				mouse[y * 16 + x] = table_rgb565[COL8_000000];
 			}
 			if (cursor[y][x] == 'O') {
-				mouse[y * 16 + x] = COL8_FFFFFF;
+				mouse[y * 16 + x] = table_rgb565[COL8_FFFFFF];
 			}
 			if (cursor[y][x] == '.') {
-				mouse[y * 16 + x] = COL8_008484;
+				mouse[y * 16 + x] = 0x99;
 			}
 		}
 	}
@@ -188,12 +209,34 @@ void Draw_Mouse(uint16_t x, uint16_t y)
 		y=(ILI9341_LESS_PIXEL-1);
 	if(x>(ILI9341_MORE_PIXEL-1))
 		x=(ILI9341_MORE_PIXEL-1);
+	if(x==Mouse_def.x && y==Mouse_def.y)
+		return;
 	Mouse_def.x_old = Mouse_def.x;
 	Mouse_def.y_old = Mouse_def.y;
 	Mouse_def.x = x;
 	Mouse_def.y = y;
+	//sheet_slide(&ctl, Mouse_sht, x, y);
 	putblock8_8(x, y, Mouse_def.Width, Mouse_def.High, Mouse_def.mouse);
 }
+/**
+  * @brief  获取一块区域的桌面图层
+  * @param  起始的位置x
+  * @param  起始的位置y
+  * @param  获取的宽
+  * @param  获取的高
+  * @retval None
+  */
+void Get_Dasktop_Part(uint16_t * buf, uint16_t x, uint16_t y, uint16_t width, uint16_t high)
+{
+	uint16_t i;
+	for(i=0;i<high;i++)
+	{
+		SPI_FLASH_BufferRead((uint8_t *)(&buf[i*width]), (DASKTOP_SHEET_ADDR + (x + (y+i)*ILI9341_MORE_PIXEL)*2), width*2);
+	}
+
+}
+
+
 
 #if Jiao_Debug
 /**
@@ -224,10 +267,13 @@ void test(void)
 	//显示文字
 	ILI9341_DispString_EN_CH(0, 220, "jhy焦浩洋");
 	ILI9341_DisplayStringEx(0, 120, 20, 40, "jhy焦浩洋", 0);
-	//测试,读取Flash里面的图形, 进行重新绘制, 检测写入是否成功
-	
 	for(i=0;i<0xffff;i++)
 		for(j=0;j<0xff;j++);
+	//测试,读取Flash里面的图形, 进行重新绘制, 检测写入是否成功
+	sheet_slide(&ctl, Mouse_sht, 50, 50);
+	for(i=0;i<0xffff;i++)
+		for(j=0;j<0xff;j++);
+	printf("重新绘制\n");
 	for(i=0;i<ILI9341_LESS_PIXEL;i++)
 	{
 		
@@ -238,7 +284,7 @@ void test(void)
 		
 		for ( j = 0; j < ILI9341_MORE_PIXEL; j ++ )
 			ILI9341_Write_Data ( Color_Data[j] );
-		printf("重新绘制%d\n", i);
+		//
 	}
 	
 	

@@ -4,14 +4,15 @@
 #define SHEET_USE		1
 //图层控制结构体
 struct SHTCTL ctl;
-
+struct SHEET * Mouse_sht;
+extern Mouse_Message_Def Mouse_def;
 
 /**
   * @brief  初始化图层控制结构体
   * @param  屏幕的长和宽
   * @retval None
   */
-struct SHTCTL *shtctl_init(int xsize, int ysize)
+void shtctl_init(int xsize, int ysize)
 {
 	int i;
 	ctl.xsize = xsize;
@@ -20,7 +21,7 @@ struct SHTCTL *shtctl_init(int xsize, int ysize)
 	for (i = 0; i < MAX_SHEETS; i++) {
 		ctl.sheets0[i].flags = 0; /* 所有的图层标记为未使用 */
 	}
-	return ctl;
+
 }
 /**
   * @brief  申请一个空的图层
@@ -64,20 +65,30 @@ void sheet_setbuf(struct SHEET *sht, uint16_t *buf, int xsize, int ysize, int co
   * @param  无
   * @retval None
   */
+uint16_t temp_buf[32*32];
+
 void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1)
 {
-	int h, bx, by, vx, vy, bx0, by0, bx1, by1;
-	unsigned char *buf, c;
+	int h, bx, by, bx0, by0, bx1, by1;
+	uint16_t *buf, width, high;
 	struct SHEET *sht;
-	/* refreh的范围超过了图像的范围 */
+
+	/* refreh的范围超过了显示器的范围 */
 	if (vx0 < 0) { vx0 = 0; }
 	if (vy0 < 0) { vy0 = 0; }
 	if (vx1 > ctl->xsize) { vx1 = ctl->xsize; }
 	if (vy1 > ctl->ysize) { vy1 = ctl->ysize; }
+
+	//设置一个临时的图层
+	width =vx1-vx0;
+	high = vy1-vy0;
+	Get_Dasktop_Part(temp_buf, vx0, vy0, width, high);
 	for (h = 0; h <= ctl->top; h++) {
+		//遍历所有的图层
 		sht = ctl->sheets[h];
-//		buf = sht->buf;
-		/* vx0～vy1を使って、bx0～by1を逆算する */
+		//获得图层信息
+		buf = sht->buf;
+		/* 获取相对位置的初始位置 */
 		bx0 = vx0 - sht->vx0;
 		by0 = vy0 - sht->vy0;
 		bx1 = vx1 - sht->vx0;
@@ -87,18 +98,22 @@ void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1)
 		if (bx1 > sht->bxsize) { bx1 = sht->bxsize; }
 		if (by1 > sht->bysize) { by1 = sht->bysize; }
 		for (by = by0; by < by1; by++) {
-			vy = sht->vy0 + by;
 			for (bx = bx0; bx < bx1; bx++) {
-				vx = sht->vx0 + bx;
-				c = buf[by * sht->bxsize + bx];
-				if (c != sht->col_inv) {
-					//vram[vy * ctl->xsize + vx] = c;
+				//修改临时图层
+				if(buf[bx + by*sht->bxsize] != sht->col_inv){
+					//如果不是透明颜色就进行更换
+					printf("更换");
+					temp_buf[bx + by*width] = buf[bx + by*sht->bxsize];
 				}
 			}
 		}
 	}
-	return;
+	printf("***********width = %d, high = %d**********\n", width, high);
+	boxfill_buf(temp_buf, vx0, vy0, width, high );
+		
 }
+	
+
 //图层位置的变化
 void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height)
 {
@@ -192,14 +207,23 @@ void sheet_slide(struct SHTCTL *ctl, struct SHEET *sht, int vx0, int vy0)
 void sheet_free(struct SHTCTL *ctl, struct SHEET *sht)
 {
 	if (sht->height >= 0) {
-		sheet_updown(ctl, sht, -1); /* 表示中ならまず非表示にする */
+		sheet_updown(ctl, sht, -1); /* 从正在使用的图层中去处 */
 	}
-	sht->flags = 0; /* 未使用マーク */
+	sht->flags = 0; /* 未使用 */
 	return;
 }
 
 void sheet_init(void)
 {
-	
+	//初始化管理的结构体
+	shtctl_init(ILI9341_MORE_PIXEL, ILI9341_LESS_PIXEL);
+	//申请鼠标结构体
+	Mouse_sht = sheet_alloc(&ctl);
+	//设置鼠标图层
+	sheet_setbuf(Mouse_sht, Mouse_def.mouse, Mouse_def.Width, Mouse_def.High, 0x99);
+	Mouse_sht->vx0 = 310;
+	Mouse_sht->vy0 = 200;
+	sheet_updown(&ctl, Mouse_sht, MAX_SHEETS);
+
 }
 

@@ -844,13 +844,11 @@ void ILI9341_FillColor ( uint32_t ulAmout_Point, uint16_t usColor )
 {
 	uint32_t i = 0;
 	
-	
 	/* memory write */
 	ILI9341_Write_Cmd ( CMD_SetPixel );	
 		
 	for ( i = 0; i < ulAmout_Point; i ++ )
 		ILI9341_Write_Data ( usColor );
-		
 	
 }
 
@@ -1944,7 +1942,7 @@ void LCD_ClearLine(uint16_t Line)
   * @param  鼠标的图形数组坐标,有每一个位置的颜色
   * @retval None
   */
-void putblock8_8(uint16_t x0, uint16_t y0, int pxsize,int pysize, char *buf)
+void putblock8_8(uint16_t x0, uint16_t y0, int pxsize,int pysize, uint16_t *buf)
 {
 	int x, y;
 	uint16_t width = Mouse_def.Width, high = Mouse_def.High;
@@ -1991,8 +1989,8 @@ void putblock8_8(uint16_t x0, uint16_t y0, int pxsize,int pysize, char *buf)
 		{
 
 				color=buf[y*Mouse_def.Width+x];
-				if(table_rgb565[color]!=table_rgb565[COL8_008484])	
-					ILI9341_Write_Data ( table_rgb565[color] );
+				if(color!=0x99)	
+					ILI9341_Write_Data ( color );
 				else{
 					
 					ILI9341_Write_Data ( Color_Data[x] );

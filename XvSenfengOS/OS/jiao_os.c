@@ -25,8 +25,8 @@ static void Hareware_Init(void)
 	Calibrate_or_Get_TouchParaWithFlash(3,0);
 	printf("初始化屏幕,绘制桌面中\n");
 	ILI9341_Clear(0, 0, ILI9341_LESS_PIXEL, ILI9341_MORE_PIXEL);
+	
 	Draw_Dasktop();
-
 
 }
 
@@ -41,14 +41,16 @@ static void System_data_Init(void)
 	Mouse_def.Width = MOUSE_WIDTH;
 	Mouse_def.High = MOUSE_HIGH;
 	init_mouse_cursor8(Mouse_def.mouse);
+	//初始化图层
+	sheet_init();
+	
 
 }
 
 void JIAO_OS_Init(void)
 {
-	System_data_Init();
 	Hareware_Init();
-	
+	System_data_Init();
 
 }
 
