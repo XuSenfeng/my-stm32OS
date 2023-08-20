@@ -865,7 +865,6 @@ void XPT2046_TouchDown(strType_XPT2046_Coordinate * touch)
 	//若为负值表示之前已处理过
 	if(touch->pre_x == -1 && touch->pre_x == -1)
 		return;
-	printf("x=%d, y=%d\r\n", touch->x, touch->y);
 	/***在此处编写自己的触摸按下处理应用***/
   	
 	

@@ -1,6 +1,6 @@
 #include "jiao_dasktop.h"
 
-extern struct SHTCTL ctl;
+
 extern struct SHEET * Mouse_sht;
 
 //保存原本的颜色
@@ -215,8 +215,8 @@ void Draw_Mouse(uint16_t x, uint16_t y)
 	Mouse_def.y_old = Mouse_def.y;
 	Mouse_def.x = x;
 	Mouse_def.y = y;
-	//sheet_slide(&ctl, Mouse_sht, x, y);
-	putblock8_8(x, y, Mouse_def.Width, Mouse_def.High, Mouse_def.mouse);
+	sheet_slide(Mouse_sht, x, y);
+	//putblock8_8(x, y, Mouse_def.Width, Mouse_def.High, Mouse_def.mouse);
 }
 /**
   * @brief  获取一块区域的桌面图层
@@ -270,7 +270,11 @@ void test(void)
 	for(i=0;i<0xffff;i++)
 		for(j=0;j<0xff;j++);
 	//测试,读取Flash里面的图形, 进行重新绘制, 检测写入是否成功
-	sheet_slide(&ctl, Mouse_sht, 50, 50);
+	sheet_slide(Mouse_sht, 55, 50);
+	for(i=0;i<0xffff;i++)
+		for(j=0;j<0xff;j++);
+	sheet_slide(Mouse_sht, 60, 50);
+
 	for(i=0;i<0xffff;i++)
 		for(j=0;j<0xff;j++);
 	printf("重新绘制\n");

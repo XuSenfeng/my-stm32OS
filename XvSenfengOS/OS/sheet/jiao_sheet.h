@@ -14,8 +14,8 @@ struct SHTCTL {
 	struct SHEET sheets0[MAX_SHEETS];
 };
 
-void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1);
+void sheet_refreshsub(int vx0, int vy0, int vx1, int vy1);
 void sheet_init(void);
-void sheet_slide(struct SHTCTL *ctl, struct SHEET *sht, int vx0, int vy0);
+void sheet_slide(struct SHEET *sht, int vx0, int vy0);
 
 #endif

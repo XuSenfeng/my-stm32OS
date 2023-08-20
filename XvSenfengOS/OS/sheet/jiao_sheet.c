@@ -3,7 +3,7 @@
 
 #define SHEET_USE		1
 //图层控制结构体
-struct SHTCTL ctl;
+static struct SHTCTL ctl;
 struct SHEET * Mouse_sht;
 extern Mouse_Message_Def Mouse_def;
 
@@ -67,48 +67,56 @@ void sheet_setbuf(struct SHEET *sht, uint16_t *buf, int xsize, int ysize, int co
   */
 uint16_t temp_buf[32*32];
 
-void sheet_refreshsub(struct SHTCTL *ctl, int vx0, int vy0, int vx1, int vy1)
+void sheet_refreshsub(int vx0, int vy0, int vx1, int vy1)
 {
-	int h, bx, by, bx0, by0, bx1, by1;
-	uint16_t *buf, width, high;
+	int h, bx, by, bx0, by0, bx1, by1, vy, vx;
+	uint16_t *buf, width, high, c;
 	struct SHEET *sht;
 
 	/* refreh的范围超过了显示器的范围 */
 	if (vx0 < 0) { vx0 = 0; }
 	if (vy0 < 0) { vy0 = 0; }
-	if (vx1 > ctl->xsize) { vx1 = ctl->xsize; }
-	if (vy1 > ctl->ysize) { vy1 = ctl->ysize; }
+	if (vx1 > ctl.xsize) { vx1 = ctl.xsize; }
+	if (vy1 > ctl.ysize) { vy1 = ctl.ysize; }
 
 	//设置一个临时的图层
 	width =vx1-vx0;
 	high = vy1-vy0;
 	Get_Dasktop_Part(temp_buf, vx0, vy0, width, high);
-	for (h = 0; h <= ctl->top; h++) {
+	for (h = 0; h <= ctl.top; h++) {
 		//遍历所有的图层
-		sht = ctl->sheets[h];
+		sht = ctl.sheets[h];
 		//获得图层信息
 		buf = sht->buf;
-		/* 获取相对位置的初始位置 */
+		/* 获取临时图层更新位置相对于图层的位置 */
 		bx0 = vx0 - sht->vx0;
 		by0 = vy0 - sht->vy0;
 		bx1 = vx1 - sht->vx0;
-		by1 = vy1 - sht->vy0;
-		if (bx0 < 0) { bx0 = 0; }
-		if (by0 < 0) { by0 = 0; }
+		by1 = vy1 - sht->vy0;	
+		printf("bx0 = %d %d", bx0, vx0);
+		//算出来相对位置是负数的时候会出现问题
+		if (bx0 < 0) { bx0 = 0;}
+		if (by0 < 0) { by0 = 0;}
 		if (bx1 > sht->bxsize) { bx1 = sht->bxsize; }
 		if (by1 > sht->bysize) { by1 = sht->bysize; }
+		//首先是临时图层在左边
+
+		//临时图层在左上角
 		for (by = by0; by < by1; by++) {
+			vy = sht->vy0 + by;
 			for (bx = bx0; bx < bx1; bx++) {
-				//修改临时图层
-				if(buf[bx + by*sht->bxsize] != sht->col_inv){
-					//如果不是透明颜色就进行更换
-					printf("更换");
-					temp_buf[bx + by*width] = buf[bx + by*sht->bxsize];
+				vx = sht->vx0 + bx;
+				c = buf[by * sht->bxsize + bx];
+				if (c != sht->col_inv) {
+					temp_buf[(vy-vy0) * width + vx-vx0] = c;
 				}
 			}
 		}
+		
 	}
 	printf("***********width = %d, high = %d**********\n", width, high);
+	printf("***********vx0 = %d, vy0 = %d %d %d**********\n\n", vx0, vy0, vy1, vx1);
+
 	boxfill_buf(temp_buf, vx0, vy0, width, high );
 		
 }
@@ -147,7 +155,7 @@ void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height)
 			}
 			ctl->top--; /* 高度下降 */
 		}
-		sheet_refreshsub(ctl, sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize);
+		sheet_refreshsub(sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize);
 	} else if (old < height) {	/* 比之前的图层高 */
 		if (old >= 0) {
 			/* 之前的图层已经显示了 */
@@ -165,7 +173,7 @@ void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height)
 			ctl->sheets[height] = sht;
 			ctl->top++; /* 所有图层的数量加一 */
 		}
-		sheet_refreshsub(ctl, sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize);
+		sheet_refreshsub(sht->vx0, sht->vy0, sht->vx0 + sht->bxsize, sht->vy0 + sht->bysize);
 	}
 	return;
 }
@@ -178,7 +186,7 @@ void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height)
 void sheet_refresh(struct SHTCTL *ctl, struct SHEET *sht, int bx0, int by0, int bx1, int by1)
 {
 	if (sht->height >= 0) { /* もしも表示中なら、新しい下じきの情報に沿って画面を描き直す */
-		sheet_refreshsub(ctl, sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1, sht->vy0 + by1);
+		sheet_refreshsub(sht->vx0 + bx0, sht->vy0 + by0, sht->vx0 + bx1, sht->vy0 + by1);
 	}
 	return;
 }
@@ -187,14 +195,15 @@ void sheet_refresh(struct SHTCTL *ctl, struct SHEET *sht, int bx0, int by0, int 
   * @param  无
   * @retval None
   */
-void sheet_slide(struct SHTCTL *ctl, struct SHEET *sht, int vx0, int vy0)
+void sheet_slide(struct SHEET *sht, int vx0, int vy0)
 {
 	int old_vx0 = sht->vx0, old_vy0 = sht->vy0;
 	sht->vx0 = vx0;
 	sht->vy0 = vy0;
 	if (sht->height >= 0) { /* 图层的高度为显示的图层 */
-		sheet_refreshsub(ctl, old_vx0, old_vy0, old_vx0 + sht->bxsize, old_vy0 + sht->bysize);
-		sheet_refreshsub(ctl, vx0, vy0, vx0 + sht->bxsize, vy0 + sht->bysize);
+		printf("原来位置重新绘制\n");
+		sheet_refreshsub(old_vx0, old_vy0, old_vx0 + sht->bxsize, old_vy0 + sht->bysize);
+		sheet_refreshsub(vx0, vy0, vx0 + sht->bxsize, vy0 + sht->bysize);
 	}
 	return;
 }
