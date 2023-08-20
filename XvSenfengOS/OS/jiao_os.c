@@ -1,7 +1,7 @@
 #include "jiao_os.h"
 extern Mouse_Message_Def Mouse_def;
 
-
+struct Event_Flog EventFlog;
 
 /**
   * @brief  初始化硬件进行绘制桌面
@@ -25,7 +25,7 @@ static void Hareware_Init(void)
 	Calibrate_or_Get_TouchParaWithFlash(3,0);
 	printf("初始化屏幕,绘制桌面中\n");
 	ILI9341_Clear(0, 0, ILI9341_LESS_PIXEL, ILI9341_MORE_PIXEL);
-	
+	Key_GPIO_Config();
 	Draw_Dasktop();
 
 }
@@ -43,7 +43,9 @@ static void System_data_Init(void)
 	init_mouse_cursor8(Mouse_def.mouse);
 	//初始化图层
 	sheet_init();
-	
+	EventFlog.Key1_num = 0;
+	EventFlog.Key2_num = 0;
+	EventFlog.Touch_num = 0;
 
 }
 

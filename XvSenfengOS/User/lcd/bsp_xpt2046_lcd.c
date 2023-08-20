@@ -19,12 +19,12 @@
 #include "./led/bsp_led.h"
 #include "./font/fonts.h"
 #include "./flash/bsp_spi_flash.h"
+#include "jiao_os.h"
 //#include "palette.h"
 #include <stdio.h> 
 #include <string.h>
 
-uint8_t Touch_num=0;
-
+extern struct Event_Flog EventFlog;
 /******************************* 声明 XPT2046 相关的静态函数 ***************************/
 static void                   XPT2046_DelayUS                       ( __IO uint32_t ulCount );
 static void                   XPT2046_WriteCMD                      ( uint8_t ucCmd );
@@ -897,7 +897,7 @@ void XPT2046_TouchEvenHandler(void )
 {
 	  static strType_XPT2046_Coordinate cinfo={-1,-1,-1,-1};
 	
-		if( Touch_num)
+		if( EventFlog.Touch_num)
 		{
 			LED_GREEN;
 			
@@ -914,7 +914,7 @@ void XPT2046_TouchEvenHandler(void )
 			
 			/*更新触摸信息到pre xy*/
 			cinfo.pre_x = cinfo.x; cinfo.pre_y = cinfo.y;  
-			Touch_num=0;
+			EventFlog.Touch_num=0;
 		}
 		else
 		{
@@ -923,11 +923,6 @@ void XPT2046_TouchEvenHandler(void )
 			//调用触摸被释放时的处理函数，可在该函数编写自己的触摸释放处理过程
 			XPT2046_TouchUp(&cinfo); 
 			
-			/*触笔释放，把 xy 重置为负*/
-//			cinfo.x = -1;
-//			cinfo.y = -1; 
-//			cinfo.pre_x = -1;
-//			cinfo.pre_y = -1;
 		}
 
 }

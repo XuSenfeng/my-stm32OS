@@ -23,9 +23,7 @@ static void BASIC_TIM_Config(void)
 	
 	TIM_ClearFlag(BASIC_TIM, TIM_FLAG_Update);
 	
-	TIM_ITConfig(BASIC_TIM, TIM_FLAG_Update, ENABLE);
-	
-	
+	TIM_ITConfig(BASIC_TIM, TIM_FLAG_Update, ENABLE);	
 }
 /**
   * @brief  设置触摸屏的优先级

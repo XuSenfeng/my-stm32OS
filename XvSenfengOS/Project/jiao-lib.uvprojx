@@ -570,6 +570,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\TIM\bsp_base_tim.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\Key\bsp_key.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

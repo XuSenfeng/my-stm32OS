@@ -27,8 +27,9 @@
 #include "stm32f10x.h"
 #include "bsp_base_tim.h"
 #include "./lcd/bsp_xpt2046_lcd.h"
+#include "jiao_os.h"
+extern struct Event_Flog EventFlog;
 
-extern uint8_t Touch_num;
 uint32_t time=0;
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
@@ -177,7 +178,39 @@ void EXTI4_IRQHandler(void)
 		EXTI_ClearITPendingBit(EXTI_Line4);
 	}
 }
+/**
+  * @brief  中断函数,Key1按下的时候触发
+  * @param  无
+  * @retval None
+  */
+void EXTI0_IRQHandler(void)
+{
+	if(EXTI_GetITStatus(EXTI_Line0) != RESET)
+	{
+		if(KEY1_Read()==KEY_ON)
+			EventFlog.Key1_num=1;
+		if(KEY1_Read()==KEY_OFF)
+			EventFlog.Key1_num=2;
 
+		EXTI_ClearITPendingBit(EXTI_Line0);
+	}
+}
+/**
+  * @brief  中断函数,Key2按下的时候触发
+  * @param  无
+  * @retval None
+  */
+void EXTI15_10_IRQHandler(void)
+{
+	if(EXTI_GetITStatus(EXTI_Line13) != RESET)
+	{
+		if(KEY2_Read()==KEY_ON)
+			EventFlog.Key2_num=1;
+		if(KEY2_Read()==KEY_OFF)
+			EventFlog.Key2_num=2;
+		EXTI_ClearITPendingBit(EXTI_Line13);
+	}
+}
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
 /*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
@@ -196,7 +229,7 @@ void  BASIC_TIM_IRQHandler (void)
 		//判断现在的时钟触摸屏状态
 		if(XPT2046_PENIRQ_Read() == Bit_RESET)
 		{
-			Touch_num=1;
+			EventFlog.Touch_num=1;
 		}else
 		{
 			TIM_Cmd(BASIC_TIM, DISABLE);
