@@ -24,8 +24,11 @@ static void Hareware_Init(void)
 	//从FLASH里获取校正参数，若FLASH无参数，则使用模式3进行校正
 	Calibrate_or_Get_TouchParaWithFlash(3,0);
 	printf("初始化屏幕,绘制桌面中\n");
-	ILI9341_Clear(0, 0, ILI9341_LESS_PIXEL, ILI9341_MORE_PIXEL);
+	//在这里清空屏幕
+	//ILI9341_Clear(0, 0, ILI9341_LESS_PIXEL, ILI9341_MORE_PIXEL);
+	//初始化按键
 	Key_GPIO_Config();
+	//绘制桌面
 	Draw_Dasktop();
 
 }

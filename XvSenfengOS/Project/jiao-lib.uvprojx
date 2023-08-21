@@ -610,6 +610,11 @@
               <FileType>1</FileType>
               <FilePath>..\OS\sheet\jiao_sheet.c</FilePath>
             </File>
+            <File>
+              <FileName>jiao_list.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\OS\jiao_list.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
