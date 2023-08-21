@@ -6,11 +6,11 @@ int main()
 //	int i;
 	JIAO_OS_Init();
 
-
 #if Jiao_Debug
 
 	printf("**********************************\n\n");
-	test();
+	//test();
+	Task_main();
 #endif
 #if USE_OF_MOUSE
 	Draw_Mouse(160, 120);

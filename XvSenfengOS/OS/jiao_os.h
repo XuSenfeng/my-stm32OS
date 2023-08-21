@@ -20,6 +20,8 @@
 #include "bsp_base_tim.h"
 #include "jiao_sheet.h"
 #include "./Key/bsp_key.h"
+#include "./task/jiao_task.h"
+
 /*用于记录各种中断中产生的事件*/
 struct Event_Flog{
 	uint8_t Key1_num;

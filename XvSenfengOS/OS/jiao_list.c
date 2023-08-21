@@ -30,11 +30,14 @@ void vListInitialiseItem( ListItem_t * const pxItem )
 /* 将节点插入到链表的尾部 */
 void vListInsertEnd( List_t * const pxList, ListItem_t * const pxNewListItem )
 {
+	//获取索引列表项
 	ListItem_t * const pxIndex = pxList->pxIndex;
-
+	//插入索引链表的前面,修改自身的索引
 	pxNewListItem->pxNext = pxIndex;
 	pxNewListItem->pxPrevious = pxIndex->pxPrevious;
+	//修改前面的列表索引
 	pxIndex->pxPrevious->pxNext = pxNewListItem;
+	//修改后面一项的索引
 	pxIndex->pxPrevious = pxNewListItem;
 
 	/* 记住该节点所在的链表 */
@@ -56,10 +59,12 @@ void vListInsert( List_t * const pxList, ListItem_t * const pxNewListItem )
 	/* 寻找节点要插入的位置 */
 	if( xValueOfInsertion == portMAX_DELAY )
 	{
+		//索引设置为最大,直接插在最后一个节点的前面
 		pxIterator = pxList->xListEnd.pxPrevious;
 	}
 	else
 	{
+		//获取最后一个节点,之后向后进行索引(从第一个节点开始),直到找到某一个索引的下一个的索引值大于插入的数据的
 		for( pxIterator = ( ListItem_t * ) &( pxList->xListEnd );
 		     pxIterator->pxNext->xItemValue <= xValueOfInsertion; 
 			 pxIterator = pxIterator->pxNext )

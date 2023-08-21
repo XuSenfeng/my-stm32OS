@@ -615,6 +615,11 @@
               <FileType>1</FileType>
               <FilePath>..\OS\jiao_list.c</FilePath>
             </File>
+            <File>
+              <FileName>jiao_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\OS\task\jiao_task.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

@@ -51,7 +51,6 @@ static void System_data_Init(void)
 	EventFlog.Touch_num = 0;
 
 }
-
 void JIAO_OS_Init(void)
 {
 	Hareware_Init();

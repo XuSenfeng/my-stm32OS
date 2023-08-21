@@ -28,6 +28,8 @@
 #include "bsp_base_tim.h"
 #include "./lcd/bsp_xpt2046_lcd.h"
 #include "jiao_os.h"
+#include "./task/jiao_task.h"
+
 extern struct Event_Flog EventFlog;
 
 uint32_t time=0;
@@ -112,9 +114,9 @@ void UsageFault_Handler(void)
   * @param  None
   * @retval None
   */
-void SVC_Handler(void)
-{
-}
+//void SVC_Handler(void)
+//{
+//}
 
 /**
   * @brief  This function handles Debug Monitor exception.
@@ -130,9 +132,51 @@ void DebugMon_Handler(void)
   * @param  None
   * @retval None
   */
-void PendSV_Handler(void)
+__asm void xPortPendSVHandler( void )
 {
+	extern pxCurrentTCB;
+	extern vTaskSwitchContext;
+
+	PRESERVE8
+
+    /* 当进入PendSVC Handler时，上一个任务运行的环境即：
+       xPSR，PC（任务入口地址），R14，R12，R3，R2，R1，R0（任务的形参）
+       这些CPU寄存器的值会自动保存到任务的栈中，剩下的r4~r11需要手动保存 */
+    /* 获取任务栈指针到r0 */
+	mrs r0, psp
+	isb
+
+	ldr	r3, =pxCurrentTCB		/* 加载pxCurrentTCB的地址到r3 */
+	ldr	r2, [r3]                /* 加载pxCurrentTCB到r2 */
+
+	stmdb r0!, {r4-r11}			/* 将CPU寄存器r4~r11的值存储到r0指向的地址 */
+	str r0, [r2]                /* 将任务栈的新的栈顶指针存储到当前任务TCB的第一个成员，即栈顶指针 */				
+                               
+
+	stmdb sp!, {r3, r14}        /* 将R3和R14临时压入堆栈，因为即将调用函数vTaskSwitchContext,
+                                  调用函数时,返回地址自动保存到R14中,所以一旦调用发生,R14的值会被覆盖,因此需要入栈保护;
+                                  R3保存的当前激活的任务TCB指针(pxCurrentTCB)地址,函数调用后会用到,因此也要入栈保护 */
+	mov r0, #configMAX_SYSCALL_INTERRUPT_PRIORITY    /* 进入临界段 */
+	msr basepri, r0
+	dsb
+	isb
+	bl vTaskSwitchContext       /* 调用函数vTaskSwitchContext，寻找新的任务运行,通过使变量pxCurrentTCB指向新的任务来实现任务切换 */ 
+	mov r0, #0                  /* 退出临界段 */
+	msr basepri, r0
+	ldmia sp!, {r3, r14}        /* 恢复r3和r14 */
+
+	ldr r1, [r3]
+	ldr r0, [r1] 				/* 当前激活的任务TCB第一项保存了任务堆栈的栈顶,现在栈顶值存入R0*/
+	ldmia r0!, {r4-r11}			/* 出栈 */
+	msr psp, r0
+	isb
+	bx r14                      /* 异常发生时,R14中保存异常返回标志,包括返回后进入线程模式还是处理器模式、
+                                   使用PSP堆栈指针还是MSP堆栈指针，当调用 bx r14指令后，硬件会知道要从异常返回，
+                                   然后出栈，这个时候堆栈指针PSP已经指向了新任务堆栈的正确位置，
+                                   当新任务的运行地址被出栈到PC寄存器后，新的任务也会被执行。*/
+	nop
 }
+
 
 /**
   * @brief  This function handles SysTick Handler.
