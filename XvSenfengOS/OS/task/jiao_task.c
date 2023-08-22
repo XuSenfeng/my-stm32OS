@@ -27,7 +27,11 @@ void delay (uint32_t count)
 }
 /* 任务1 */
 uint8_t flag1;
-
+/**
+  * @brief  任务一的测试函数
+  * @param  无
+  * @retval None
+  */
 void Task1_Entry( void *p_arg )
 {
 	for( ;; )
@@ -46,7 +50,11 @@ void Task1_Entry( void *p_arg )
 }
 uint8_t flag2;
 
-/* 任务2 */
+/**
+  * @brief  任务二的测试函数
+  * @param  无
+  * @retval None
+  */
 void Task2_Entry( void *p_arg )
 {
 	for( ;; )
@@ -63,21 +71,29 @@ void Task2_Entry( void *p_arg )
         taskYIELD();
 	}
 }
-
+/**
+  * @brief  这个函数是出问题,任务退出的时候才会进入,正常情况下不会进入,任务函数的返回函数记录的是这一个函数
+  * @param  无
+  * @retval None
+  */
 static void prvTaskExitError( void )
 {
     /* 函数停止在这里 */
     for(;;);
 }
 
-//创建任务的函数
-/*
-*************************************************************************
-*                               静态任务创建函数
-*************************************************************************
-*/
 
-TaskHandle_t xTaskCreateStatic(	TaskFunction_t pxTaskCode,           /* 任务入口 */
+/**
+  * @brief  创建静态函数
+  * @param  任务执行的函数
+  * @param  任务的名称
+  * @param  任务栈的大小
+  * @param  任务形参
+  * @param  任务栈起始地址
+  * @param  任务控制指针,返回的是TCB
+  * @retval None
+  */
+TaskHandle_t xTaskCreateStatic(	TaskFunction_t pxTaskCode,           /* 任务入口,任务实际上执行的函数 */
 					            const char * const pcName,           /* 任务名称，字符串形式 */
 					            const uint32_t ulStackDepth,         /* 任务栈大小，单位为字 */
 					            void * const pvParameters,           /* 任务形参 */
@@ -109,7 +125,16 @@ TaskHandle_t xTaskCreateStatic(	TaskFunction_t pxTaskCode,           /* 任务入口
 	/* 返回任务句柄，如果任务创建成功，此时xReturn应该指向任务控制块 */
     return xReturn;
 }
-
+/**
+  * @brief  创建任务的函数,由创建静态函数等的函数调用
+  * @param  任务执行的函数
+  * @param  任务的名称
+  * @param  任务栈的大小
+  * @param  任务形参
+  * @param  任务控制指针,返回的是TCB
+  * @param  任务控制指针,操作之后会进行返回
+  * @retval None
+  */
 static void prvInitialiseNewTask( 	TaskFunction_t pxTaskCode,              /* 任务入口 */
 									const char * const pcName,              /* 任务名称，字符串形式 */
 									const uint32_t ulStackDepth,            /* 任务栈大小，单位为字 */
@@ -156,8 +181,11 @@ static void prvInitialiseNewTask( 	TaskFunction_t pxTaskCode,              /* 任
 		*pxCreatedTask = ( TaskHandle_t ) pxNewTCB;
 	}
 }
-
-/* 初始化任务相关的列表 */
+/**
+  * @brief  初始化任务优先级列表控制块的数组
+  * @param  无
+  * @retval None
+  */
 void prvInitialiseTaskLists( void )
 {
     UBaseType_t uxPriority;
@@ -168,7 +196,13 @@ void prvInitialiseTaskLists( void )
 		vListInitialise( &( pxReadyTasksLists[ uxPriority ] ) );
 	}
 }
-//初始化任务栈
+/**
+  * @brief  初始化任务的栈
+  * @param  栈的顶层
+  * @param  返回的函数(正常情况下不会调用)
+  * @param  任务的形参
+  * @retval None
+  */
 StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters )
 {
     /* 异常发生时，自动加载到CPU寄存器的内容 */
@@ -188,7 +222,11 @@ StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t px
     return pxTopOfStack;
 }
 
-//启动第一个任务
+/**
+  * @brief  启动第一个项目
+  * @param  无
+  * @retval None
+  */
 void vTaskStartScheduler( void )
 {
     /* 手动指定第一个运行的任务 */
@@ -200,7 +238,11 @@ void vTaskStartScheduler( void )
         /* 调度器启动成功，则不会返回，即不会来到这里 */
     }
 }
-//手动启动第一个任务
+/**
+  * @brief  手动启动第一个任务,主要是设置调用一个SVC中断
+  * @param  无
+  * @retval None
+  */
 __asm void prvStartFirstTask( void )
 {
 	PRESERVE8
@@ -225,29 +267,12 @@ __asm void prvStartFirstTask( void )
 	nop
 	nop
 }
-//SVC中断
-__asm void vPortSVCHandler( void )
-{
-    extern pxCurrentTCB;
-    
-    PRESERVE8
 
-	ldr	r3, =pxCurrentTCB	/* 加载pxCurrentTCB的地址到r3 */
-	ldr r1, [r3]			/* 加载pxCurrentTCB到r1 */
-	ldr r0, [r1]			/* 加载pxCurrentTCB指向的值到r0，目前r0的值等于第一个任务堆栈的栈顶 */
-	ldmia r0!, {r4-r11}		/* 以r0为基地址，将栈里面的内容加载到r4~r11寄存器，同时r0会递增 */
-	msr psp, r0				/* 将r0的值，即任务的栈指针更新到psp */
-	isb
-	mov r0, #0              /* 设置r0的值为0 */
-	msr	basepri, r0         /* 设置basepri寄存器的值为0，即所有的中断都没有被屏蔽 */
-	orr r14, #0xd           /* 当从SVC中断服务退出前,通过向r14寄存器最后4位按位或上0x0D，
-                               使得硬件在退出时使用进程堆栈指针PSP完成出栈操作并返回后进入线程模式、返回Thumb状态 */
-    
-	bx r14                  /* 异常返回，这个时候栈中的剩下内容将会自动加载到CPU寄存器：
-                               xPSR，PC（任务入口地址），R14，R12，R3，R2，R1，R0（任务的形参）
-                               同时PSP的值也将更新，即指向任务栈的栈顶 */
-}
-//任务调度器
+/**
+  * @brief  任务调度器的启动
+  * @param  无
+  * @retval None
+  */
 BaseType_t xPortStartScheduler( void )
 {
     /* 配置PendSV 和 SysTick 的中断优先级为最低 */
@@ -260,7 +285,11 @@ BaseType_t xPortStartScheduler( void )
 	/* 不应该运行到这里 */
 	return 0;
 }
-
+/**
+  * @brief  正在运行的任务的切换
+  * @param  无
+  * @retval None
+  */
 void vTaskSwitchContext( void )
 {    
     /* 两个任务轮流切换 */
@@ -276,7 +305,11 @@ void vTaskSwitchContext( void )
 
 
 #if Jiao_Debug
-
+/**
+  * @brief  测试函数
+  * @param  无
+  * @retval None
+  */
 void Task_main(void)
 {
 	Task1_Handle = xTaskCreateStatic(Task1_Entry, 

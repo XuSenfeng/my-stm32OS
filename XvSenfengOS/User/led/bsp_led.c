@@ -1,5 +1,9 @@
 #include "bsp_led.h"
-
+/**
+  * @brief  初始化LED的GPIO
+  * @param  无
+  * @retval None
+  */
 void LED_GPIO_Config()
 {
 	//开启时钟

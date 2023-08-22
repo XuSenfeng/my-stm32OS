@@ -24,13 +24,13 @@
 
 /*用于记录各种中断中产生的事件*/
 struct Event_Flog{
+	//按键是否按下
 	uint8_t Key1_num;
 	uint8_t Key2_num;
+	//触摸屏是否按下
 	uint8_t Touch_num;
 
 };
-
-
 
 void JIAO_OS_Init(void);
 

@@ -178,6 +178,35 @@ __asm void xPortPendSVHandler( void )
 }
 
 
+//SVC中断
+/**
+  * @brief  SVC中断,主要用于加载任务函数,获取当前正在运行的任务,之后加载,切换到
+  * @param  无
+  * @retval None
+  */
+__asm void vPortSVCHandler( void )
+{
+    extern pxCurrentTCB;
+    
+    PRESERVE8
+
+	ldr	r3, =pxCurrentTCB	/* 加载pxCurrentTCB的地址到r3 */
+	ldr r1, [r3]			/* 加载pxCurrentTCB到r1 */
+	ldr r0, [r1]			/* 加载pxCurrentTCB指向的值到r0，目前r0的值等于第一个任务堆栈的栈顶 */
+	ldmia r0!, {r4-r11}		/* 以r0为基地址，将栈里面的内容加载到r4~r11寄存器，同时r0会递增 */
+	msr psp, r0				/* 将r0的值，即任务的栈指针更新到psp */
+	isb
+	mov r0, #0              /* 设置r0的值为0 */
+	msr	basepri, r0         /* 设置basepri寄存器的值为0，即所有的中断都没有被屏蔽 */
+	orr r14, #0xd           /* 当从SVC中断服务退出前,通过向r14寄存器最后4位按位或上0x0D，
+                               使得硬件在退出时使用进程堆栈指针PSP完成出栈操作并返回后进入线程模式、返回Thumb状态 */
+    
+	bx r14                  /* 异常返回，这个时候栈中的剩下内容将会自动加载到CPU寄存器：
+                               xPSR，PC（任务入口地址），R14，R12，R3，R2，R1，R0（任务的形参）
+                               同时PSP的值也将更新，即指向任务栈的栈顶 */
+}
+
+
 /**
   * @brief  This function handles SysTick Handler.
   * @param  None

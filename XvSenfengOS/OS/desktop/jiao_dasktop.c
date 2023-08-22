@@ -236,6 +236,24 @@ void Get_Dasktop_Part(uint16_t * buf, uint16_t x, uint16_t y, uint16_t width, ui
 
 }
 
+/**
+  * @brief  填充一个图层数组,可以设置填充的位置,填充的是长方形
+  * @param  图层的宽
+  * @param  填充的颜色
+  * @param  起始位置,横纵坐标
+  * @param  末尾的位置,横纵坐标
+  * @retval None
+  */
+void buf_fill8(uint16_t *buf, int xsize, uint16_t c, int x0, int y0, int x1, int y1)
+{
+	int x, y;
+	for (y = y0; y <= y1; y++) {
+		for (x = x0; x <= x1; x++)
+			buf[y * xsize + x] = c;
+	}
+	return;
+}
+
 
 
 #if Jiao_Debug

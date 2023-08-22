@@ -10,7 +10,7 @@
 #define portINITIAL_XPSR			        ( 0x01000000 )
 #define portSTART_ADDRESS_MASK				( ( StackType_t ) 0xfffffffeUL )
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY 	191   /* 高四位有效，即等于0xb0，或者是11 */
-
+//任务控制器
 typedef struct tskTaskControlBlock
 {
 	volatile uint32_t    *pxTopOfStack;    /* 栈顶 */
