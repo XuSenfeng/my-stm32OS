@@ -326,12 +326,22 @@ void  TIME_TIM_IRQHandler (void)
 	if ( TIM_GetITStatus( TIME_TIM, TIM_IT_Update) != RESET ) 
 	{	
 		timerctl.count++;
+		if (timerctl.next > timerctl.count) {
+			TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update);  		 
+			return; /* 没有到下一个时刻 */
+		}
+		timerctl.next = 0xffffffff;
 		for (i = 0; i < MAX_TIMER; i++) {
 			if (timerctl.timer[i].flags == TIMER_FLAGS_USING) {
-				timerctl.timer[i].timeout--;
-				if (timerctl.timer[i].timeout == 0) {
+				if (timerctl.timer[i].timeout <= timerctl.count) {
+					/* 超时 */
 					timerctl.timer[i].flags = TIMER_FLAGS_ALLOC;
 					fifo8_put(timerctl.timer[i].fifo, timerctl.timer[i].data);
+				} else {
+					/* 没有超时 */
+					if (timerctl.next > timerctl.timer[i].timeout) {
+						timerctl.next = timerctl.timer[i].timeout;
+					}
 				}
 			}
 		}

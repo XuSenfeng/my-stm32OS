@@ -12,7 +12,7 @@ struct TIMER {
 	unsigned char data;
 };
 struct TIMERCTL {
-	unsigned int count;
+	unsigned int count, next;
 	struct TIMER timer[MAX_TIMER];
 };
 

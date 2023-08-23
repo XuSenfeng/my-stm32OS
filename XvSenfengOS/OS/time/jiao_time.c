@@ -12,6 +12,7 @@ void init_time_ctl()
 	int i;
 
 	timerctl.count = 0;
+	timerctl.next = 0xffffffff;
 	for (i = 0; i < MAX_TIMER; i++) {
 		timerctl.timer[i].flags = 0; /* 未使用 */
 	}
@@ -44,8 +45,12 @@ void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned char data)
 
 void timer_settime(struct TIMER *timer, unsigned int timeout)
 {
-	timer->timeout = timeout;
+	timer->timeout = timeout + timerctl.count;
 	timer->flags = TIMER_FLAGS_USING;
+	if (timerctl.next > timer->timeout) {
+		/* 更新下一次的时间 */
+		timerctl.next = timer->timeout;
+	}	
 	return;
 }
 
