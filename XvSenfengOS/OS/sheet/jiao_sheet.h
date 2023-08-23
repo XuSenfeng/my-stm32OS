@@ -4,9 +4,11 @@
 #define MAX_SHEETS		5
 #include "stm32f10x.h"
 #include "jiao_dasktop.h"
+#include <stdlib.h>
 struct SHEET {
-	uint16_t *buf;
+	uint8_t *buf;
 	int bxsize, bysize, vx0, vy0, col_inv, height, flags;
+	
 };
 struct SHTCTL {
 	int xsize, ysize, top;

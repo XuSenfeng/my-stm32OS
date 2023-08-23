@@ -52,7 +52,7 @@ struct SHEET *sheet_alloc(struct SHTCTL *ctl)
   * @param  透明的颜色
   * @retval None
   */
-void sheet_setbuf(struct SHEET *sht, uint16_t *buf, int xsize, int ysize, int col_inv)
+void sheet_setbuf(struct SHEET *sht, uint8_t *buf, int xsize, int ysize, int col_inv)
 {
 	sht->buf = buf;
 	sht->bxsize = xsize;
@@ -65,14 +65,14 @@ void sheet_setbuf(struct SHEET *sht, uint16_t *buf, int xsize, int ysize, int co
   * @param  无
   * @retval None
   */
-uint16_t temp_buf[32*32];
-
+	//uint16_t temp_buf[16*16];
 void sheet_refreshsub(int vx0, int vy0, int vx1, int vy1)
 {
 	int h, bx, by, bx0, by0, bx1, by1, vy, vx;
-	uint16_t *buf, width, high, c;
+	uint16_t width, high, c;
 	struct SHEET *sht;
-
+	uint16_t *temp_buf;
+	uint8_t  *buf;
 	/* refreh的范围超过了显示器的范围 */
 	if (vx0 < 0) { vx0 = 0; }
 	if (vy0 < 0) { vy0 = 0; }
@@ -82,6 +82,9 @@ void sheet_refreshsub(int vx0, int vy0, int vx1, int vy1)
 	//设置一个临时的图层
 	width =vx1-vx0;
 	high = vy1-vy0;
+	temp_buf = malloc(width * high *2);
+	if(temp_buf != NULL)
+	{
 	Get_Dasktop_Part(temp_buf, vx0, vy0, width, high);
 	for (h = 0; h <= ctl.top; h++) {
 		//遍历所有的图层
@@ -106,7 +109,7 @@ void sheet_refreshsub(int vx0, int vy0, int vx1, int vy1)
 			vy = sht->vy0 + by;
 			for (bx = bx0; bx < bx1; bx++) {
 				vx = sht->vx0 + bx;
-				c = buf[by * sht->bxsize + bx];
+				c = table_rgb565[buf[by * sht->bxsize + bx]];
 				if (c != sht->col_inv) {
 					temp_buf[(vy-vy0) * width + vx-vx0] = c;
 				}
@@ -118,7 +121,10 @@ void sheet_refreshsub(int vx0, int vy0, int vx1, int vy1)
 	printf("***********vx0 = %d, vy0 = %d %d %d**********\n\n", vx0, vy0, vy1, vx1);
 
 	boxfill_buf(temp_buf, vx0, vy0, width, high );
-		
+	free(temp_buf);
+}
+	else
+		printf("申请失败\n");
 }
 	
 
@@ -229,7 +235,7 @@ void sheet_init(void)
 	//申请鼠标结构体
 	Mouse_sht = sheet_alloc(&ctl);
 	//设置鼠标图层
-	sheet_setbuf(Mouse_sht, Mouse_def.mouse, Mouse_def.Width, Mouse_def.High, 0x99);
+	sheet_setbuf(Mouse_sht, Mouse_def.mouse, Mouse_def.Width, Mouse_def.High, 	0x9999);
 	Mouse_sht->vx0 = 310;
 	Mouse_sht->vy0 = 200;
 	sheet_updown(&ctl, Mouse_sht, MAX_SHEETS);

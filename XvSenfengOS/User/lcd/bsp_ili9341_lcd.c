@@ -1306,7 +1306,7 @@ void ILI9341_DispString_EN_YDir (	 uint16_t usX,uint16_t usY ,  char * pStr )
 }
 
 /**
- * @brief  在 ILI9341 显示器上显示一个中文字符
+ * @brief  在 ILI9341 显示器上显示一个中文字符,这个是在所有的图形最上层
  * @param  usX ：在特定扫描方向下字符的起始X坐标
  * @param  usY ：在特定扫描方向下字符的起始Y坐标
  * @param  usChar ：要显示的中文字符（国标码）
@@ -1327,7 +1327,7 @@ void ILI9341_DispChar_CH ( uint16_t usX, uint16_t usY, uint16_t usChar )
 	ILI9341_Write_Cmd ( CMD_SetPixel );
 	
 	//取字模数据  
-  GetGBKCode ( ucBuffer, usChar );	
+	GetGBKCode ( ucBuffer, usChar );	
 	
 	for ( rowCount = 0; rowCount < HEIGHT_CH_CHAR; rowCount++ )
 	{

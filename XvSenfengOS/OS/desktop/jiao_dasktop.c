@@ -8,7 +8,7 @@ extern uint16_t Old_Color[20*40];
 //初始化一个鼠标为全局变量
 Mouse_Message_Def Mouse_def;
 //这里是操作系统使用的颜色的RGB565格式
-uint16_t table_rgb565[16] = {
+uint16_t table_rgb565[17] = {
 	0x0000,	/*  0:黒 */
 	0xf800,	/*  1:亮红 */
 	0x07e0,	/*  2:绿 */
@@ -24,7 +24,8 @@ uint16_t table_rgb565[16] = {
 	0x0010,	/* 12:暗青 */
 	0x8010,	/* 13:暗紫 */
 	0x0430,	/* 14:暗蓝色 */
-	0x8430	/* 15:暗灰色 */
+	0x8430,	/* 15:暗灰色 */
+	0x9999
 };
 
 /**
@@ -155,7 +156,7 @@ void Draw_Dasktop(void)
   * @param  绘制的时候背景的颜色
   * @retval None
   */
-void init_mouse_cursor8(uint16_t *mouse)
+void init_mouse_cursor8(uint8_t *mouse)
 /* 初始化鼠标结构体 */
 {
 
@@ -182,13 +183,13 @@ void init_mouse_cursor8(uint16_t *mouse)
 	for (y = 0; y < 16; y++) {
 		for (x = 0; x < 16; x++) {
 			if (cursor[y][x] == '*') {
-				mouse[y * 16 + x] = table_rgb565[COL8_000000];
+				mouse[y * 16 + x] = COL8_000000;
 			}
 			if (cursor[y][x] == 'O') {
-				mouse[y * 16 + x] = table_rgb565[COL8_FFFFFF];
+				mouse[y * 16 + x] = COL8_FFFFFF;
 			}
 			if (cursor[y][x] == '.') {
-				mouse[y * 16 + x] = 0x99;
+				mouse[y * 16 + x] = 16;
 			}
 		}
 	}
@@ -244,7 +245,7 @@ void Get_Dasktop_Part(uint16_t * buf, uint16_t x, uint16_t y, uint16_t width, ui
   * @param  末尾的位置,横纵坐标
   * @retval None
   */
-void buf_fill8(uint16_t *buf, int xsize, uint16_t c, int x0, int y0, int x1, int y1)
+void buf_fill8(uint8_t *buf, int xsize, uint8_t c, int x0, int y0, int x1, int y1)
 {
 	int x, y;
 	for (y = y0; y <= y1; y++) {
@@ -254,7 +255,96 @@ void buf_fill8(uint16_t *buf, int xsize, uint16_t c, int x0, int y0, int x1, int
 	return;
 }
 
+/**
+  * @brief  在某一个图层上面绘制一个字符串
+  * @param  图层的buf
+  * @param  图层的宽度
+  * @param  起始位置,横纵坐标
+  * @param  字的颜色
+  * @param  字符串的指针
+  * @retval None
+  */void putfonts8_asc(uint8_t * buf,int xsize,uint16_t x,uint16_t y, uint16_t color,char * title)
+{
+	//取字模数据 
+	uint8_t ucBuffer [ WIDTH_CH_CHAR*HEIGHT_CH_CHAR/8 ];	
+	uint8_t rowCount, bitCount;
+	uint16_t usTemp; 	
+	uint8_t * Char_End = "\0";
+	while(*title != *Char_End)
+	{
+		GetGBKCode ( ucBuffer, *title );	
 
+		for ( rowCount = 0; rowCount < HEIGHT_CH_CHAR; rowCount++ )
+		{
+			/* 取出两个字节的数据，在lcd上即是一个汉字的一行 */
+			usTemp = ucBuffer [ rowCount * 2 ];
+			usTemp = ( usTemp << 8 );
+			usTemp |= ucBuffer [ rowCount * 2 + 1 ];
+			
+			for ( bitCount = 0; bitCount < WIDTH_CH_CHAR; bitCount ++ )
+			{			
+				if ( usTemp & ( 0x8000 >> bitCount ) )  //高位在前,这个是显示的位置 
+				  buf[x + y*xsize] = color;
+			}		
+		}
+		title++;
+	}
+}
+
+
+
+
+
+
+
+void make_window8(uint8_t *buf, int xsize, int ysize, char *title)
+{
+	static char closebtn[14][16] = {
+		"OOOOOOOOOOOOOOO@",
+		"OQQQQQQQQQQQQQ$@",
+		"OQQQQQQQQQQQQQ$@",
+		"OQQQ@@QQQQ@@QQ$@",
+		"OQQQQ@@QQ@@QQQ$@",
+		"OQQQQQ@@@@QQQQ$@",
+		"OQQQQQQ@@QQQQQ$@",
+		"OQQQQQ@@@@QQQQ$@",
+		"OQQQQ@@QQ@@QQQ$@",
+		"OQQQ@@QQQQ@@QQ$@",
+		"OQQQQQQQQQQQQQ$@",
+		"OQQQQQQQQQQQQQ$@",
+		"O$$$$$$$$$$$$$$@",
+		"@@@@@@@@@@@@@@@@"
+	};
+	int x, y;
+	char c;
+	buf_fill8(buf, xsize, COL8_C6C6C6, 0,         0,         xsize - 1, 0        );
+	buf_fill8(buf, xsize, COL8_FFFFFF, 1,         1,         xsize - 2, 1        );
+	buf_fill8(buf, xsize, COL8_C6C6C6, 0,         0,         0,         ysize - 1);
+	buf_fill8(buf, xsize, COL8_FFFFFF, 1,         1,         1,         ysize - 2);
+	buf_fill8(buf, xsize, COL8_848484, xsize - 2, 1,         xsize - 2, ysize - 2);
+	buf_fill8(buf, xsize, COL8_000000, xsize - 1, 0,         xsize - 1, ysize - 1);
+	buf_fill8(buf, xsize, COL8_C6C6C6, 2,         2,         xsize - 3, ysize - 3);
+	buf_fill8(buf, xsize, COL8_000084, 3,         3,         xsize - 4, 20       );
+	buf_fill8(buf, xsize, COL8_848484, 1,         ysize - 2, xsize - 2, ysize - 2);
+	buf_fill8(buf, xsize, COL8_000000, 0,         ysize - 1, xsize - 1, ysize - 1);
+	putfonts8_asc(buf, xsize, 24, 4, COL8_FFFFFF, title);
+	for (y = 0; y < 14; y++) {
+		for (x = 0; x < 16; x++) {
+			c = closebtn[y][x];
+			if (c == '@') {
+				c = COL8_000000;
+			} else if (c == '$') {
+				c = COL8_848484;
+			} else if (c == 'Q') {
+				c = COL8_C6C6C6;
+			} else {
+				c = COL8_FFFFFF;
+			}
+			buf[(5 + y) * xsize + (xsize - 21 + x)] = c;
+		}
+	}
+	return;
+}
 
 #if Jiao_Debug
 /**

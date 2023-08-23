@@ -6,7 +6,7 @@
 #include "./font/fonts.h"
 #include "jiao_dasktop.h"
 
-extern uint16_t table_rgb565[16];
+extern uint16_t table_rgb565[17];
 
 /***************************************************************************************
 2^26 =0X0400 0000 = 64MB,ц©╦Ж BANK сп4*64MB = 256MB
