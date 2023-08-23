@@ -10,7 +10,7 @@
 
 
 #define 							DASKTOP_SHEET_FLAG_ADDR						(512*4096-1)
-#define								DASKTOP_SHEET_ADDR							(512*4096 + ILI9341_LESS_PIXEL*ILI9341_MORE_PIXEL)
+#define								DASKTOP_SHEET_ADDR							(512*4096)
 
 
 

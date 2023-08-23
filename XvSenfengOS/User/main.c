@@ -19,6 +19,7 @@ int main()
 		//检测触控屏按压事件
 		XPT2046_TouchEvenHandler();
 		Key_TouchEventHandler();
+		Time_OutEventHandler();
 		__WFI();	//WFI指令进入睡眠
 
 		

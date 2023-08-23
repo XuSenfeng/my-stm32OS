@@ -21,7 +21,8 @@
 #include "jiao_sheet.h"
 #include "./Key/bsp_key.h"
 #include "./task/jiao_task.h"
-
+#include "jiao_FIFO.h"
+#include "./time/jiao_time.h"
 /*用于记录各种中断中产生的事件*/
 struct Event_Flog{
 	//按键是否按下

@@ -29,9 +29,9 @@
 #include "./lcd/bsp_xpt2046_lcd.h"
 #include "jiao_os.h"
 #include "./task/jiao_task.h"
-
+#include "./time/jiao_time.h"
 extern struct Event_Flog EventFlog;
-
+extern struct TIMERCTL timerctl;
 uint32_t time=0;
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
@@ -239,7 +239,7 @@ void EXTI4_IRQHandler(void)
 	{
 
 		//使能时钟用来进行消抖
-		TIM_Cmd(BASIC_TIM, ENABLE);
+		TIM_Cmd(TOUCH_TIM, ENABLE);
 		//关闭自己的中断
 		EXTI_InitTypeDef EXTI_InitStruct;
 		EXTI_InitStruct.EXTI_Line = EXTI_Line4;	//设置为EXTI0
@@ -295,9 +295,9 @@ void EXTI15_10_IRQHandler(void)
   * @param  无
   * @retval None
   */
-void  BASIC_TIM_IRQHandler (void)
+void  TOUCH_TIM_IRQHandler (void)
 {
-	if ( TIM_GetITStatus( BASIC_TIM, TIM_IT_Update) != RESET ) 
+	if ( TIM_GetITStatus( TOUCH_TIM, TIM_IT_Update) != RESET ) 
 	{	
 		//判断现在的时钟触摸屏状态
 		if(XPT2046_PENIRQ_Read() == Bit_RESET)
@@ -305,7 +305,7 @@ void  BASIC_TIM_IRQHandler (void)
 			EventFlog.Touch_num=1;
 		}else
 		{
-			TIM_Cmd(BASIC_TIM, DISABLE);
+			TIM_Cmd(TOUCH_TIM, DISABLE);
 			EXTI_InitTypeDef EXTI_InitStruct;
 			EXTI_InitStruct.EXTI_Line = EXTI_Line4;	//设置为EXTI0
 			EXTI_InitStruct.EXTI_LineCmd = ENABLE;	//关闭中断
@@ -314,7 +314,28 @@ void  BASIC_TIM_IRQHandler (void)
 			EXTI_Init(&EXTI_InitStruct);
 		}
 
-		TIM_ClearITPendingBit(BASIC_TIM , TIM_FLAG_Update);  		 
+		TIM_ClearITPendingBit(TOUCH_TIM , TIM_FLAG_Update);  		 
+	}		 	
+}
+
+
+
+void  TIME_TIM_IRQHandler (void)
+{
+	int i;
+	if ( TIM_GetITStatus( TIME_TIM, TIM_IT_Update) != RESET ) 
+	{	
+		timerctl.count++;
+		for (i = 0; i < MAX_TIMER; i++) {
+			if (timerctl.timer[i].flags == TIMER_FLAGS_USING) {
+				timerctl.timer[i].timeout--;
+				if (timerctl.timer[i].timeout == 0) {
+					timerctl.timer[i].flags = TIMER_FLAGS_ALLOC;
+					fifo8_put(timerctl.timer[i].fifo, timerctl.timer[i].data);
+				}
+			}
+		}
+		TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update);  		 
 	}		 	
 }
 /**

@@ -6,7 +6,7 @@
   * @param  数据存储的数组
   * @retval None
   */
-void FIFO8_Init(struct FIFO_8 *fifo, int size, unsigned char *buf)
+void FIFO8_Init(struct FIFO8 *fifo, int size, unsigned char *buf)
 {
 	fifo->size = size;
 	fifo->buf = buf;
@@ -21,7 +21,7 @@ void FIFO8_Init(struct FIFO_8 *fifo, int size, unsigned char *buf)
   * @param  要保存的数据
   * @retval 数据是否溢出,溢出的话为-1,否则为0
   */
-int FIFO8_Put(struct FIFO_8 *fifo, char data)
+int fifo8_put(struct FIFO8 *fifo, char data)
 {
 	if(fifo->free==0)
 	{
@@ -42,7 +42,7 @@ int FIFO8_Put(struct FIFO_8 *fifo, char data)
   * @param  操作的结构体
   * @retval 数据是否为空,溢出的话为-1,否则为获取到的数据
   */
-int FIFO8_Get(struct FIFO_8 *fifo)
+int FIFO8_Get(struct FIFO8 *fifo)
 {
 	int data;
 	if(fifo->free == fifo->size)
@@ -63,7 +63,7 @@ int FIFO8_Get(struct FIFO_8 *fifo)
   * @param  操作的结构体
   * @retval 存储数据的个数
   */
-int FIFO8_Status(struct FIFO_8 *fifo)
+int FIFO8_Status(struct FIFO8 *fifo)
 {
 	return fifo->size - fifo->free;
 }

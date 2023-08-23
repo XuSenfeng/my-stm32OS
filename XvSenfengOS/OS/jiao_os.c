@@ -11,7 +11,7 @@ struct Event_Flog EventFlog;
 static void Hareware_Init(void)
 {
 	//初始化定时器
-	BASIC_TIM_Init();
+	TOUCH_TIM_Init();
 	//初始化串口
 
 	USART_Config();
@@ -30,7 +30,8 @@ static void Hareware_Init(void)
 	Key_GPIO_Config();
 	//绘制桌面
 	Draw_Dasktop();
-
+	//设置时间计数器
+	Timer_init();
 }
 
 /**

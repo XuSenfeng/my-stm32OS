@@ -72,7 +72,7 @@ void boxfill_buf(uint16_t *buf, int x0, int y0, int width, int height)
   * @param  结束的位置y
   * @retval None
   */
-void flish_boxfill8(int x0, int y0, int x1, int y1)
+void flish_Disply_fill8(int x0, int y0, int x1, int y1)
 {
 	
 	uint16_t Color_Data[ILI9341_MORE_PIXEL], high, width, i;
@@ -86,11 +86,6 @@ void flish_boxfill8(int x0, int y0, int x1, int y1)
 		SPI_FLASH_BufferWrite((uint8_t *)Color_Data, (DASKTOP_SHEET_ADDR + (x0 + (y0+i) * ILI9341_MORE_PIXEL)*2), width*2);
 		printf("写入%d\n", i);
 	}
-	
-	
-	
-
-
 	return;
 }
 
@@ -145,7 +140,7 @@ void Draw_Dasktop(void)
 			printf("擦除%d\n", i);
 
 		}
-		flish_boxfill8(0, 0, ILI9341_MORE_PIXEL, ILI9341_LESS_PIXEL);
+		flish_Disply_fill8(0, 0, ILI9341_MORE_PIXEL, ILI9341_LESS_PIXEL);
 		
 	}
 }

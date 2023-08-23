@@ -620,6 +620,11 @@
               <FileType>1</FileType>
               <FilePath>..\OS\task\jiao_task.c</FilePath>
             </File>
+            <File>
+              <FileName>jiao_time.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\OS\time\jiao_time.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
