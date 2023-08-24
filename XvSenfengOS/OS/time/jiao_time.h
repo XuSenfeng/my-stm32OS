@@ -7,21 +7,20 @@
 #define TIMER_FLAGS_ALLOC		1	/* 初始化 */
 #define TIMER_FLAGS_USING		2	/* 工作中 */
 struct TIMER {
+	struct TIMER *next;
 	unsigned int timeout, flags;
 	struct FIFO8 *fifo;
 	unsigned char data;
 };
 struct TIMERCTL {
-	//记录开机到现在的时间,下一个需要处理的时间,正在使用的时钟的数量
-	unsigned int count, next, usings;
-	//记录待处理的时钟
-	struct TIMER *timers[MAX_TIMER];
+	unsigned int count, next;
+	//时钟链表的起始位置
+	struct TIMER *t0;
 	//记录所有的时钟
 	struct TIMER timers0[MAX_TIMER];
-	
 };
 
-
+struct TIMER *timer_alloc(void);
 void Timer_init(void);
 void init_time_ctl(void);
 void Time_OutEventHandler(int i);

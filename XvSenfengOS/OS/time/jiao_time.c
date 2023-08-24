@@ -18,16 +18,21 @@ extern struct Event_Flog EventFlog;
   * @param  无
   * @retval None
   */
-void init_time_ctl()
+void init_pit(void)
 {
 	int i;
+	struct TIMER *t;
 
 	timerctl.count = 0;
-	timerctl.next = 0xffffffff;
-	timerctl.usings=0;
 	for (i = 0; i < MAX_TIMER; i++) {
-		timerctl.timers0[i].flags = 0; /* 未使用 */
+		timerctl.timers0[i].flags = 0; /* 设置为没有使用 */
 	}
+	t = timer_alloc(); /* 申请一个哨兵 */
+	t->timeout = 0xffffffff;
+	t->flags = TIMER_FLAGS_USING;
+	t->next = 0; /* 没有下一个 */
+	timerctl.t0 = t; /* 设置为哨兵 */
+	timerctl.next = 0xffffffff; /* 设置为最大时间 */
 	return;
 }
 
@@ -78,30 +83,33 @@ void timer_init(struct TIMER *timer, struct FIFO8 *fifo, unsigned char data)
   */
 void timer_settime(struct TIMER *timer, unsigned int timeout)
 {
-	int i, j;
-	__disable_irq();
-
+	struct TIMER *t, *s;
 	timer->timeout = timeout + timerctl.count;
 	timer->flags = TIMER_FLAGS_USING;
-	/* 搜索注册的位置 */
-	for (i = 0; i < timerctl.usings; i++) {
-		if (timerctl.timers[i]->timeout >= timer->timeout) {
-			break;
+	__disable_irq();
+
+	t = timerctl.t0;
+	if (timer->timeout <= t->timeout) {
+		/* 直接插入头部 */
+		timerctl.t0 = timer;
+		timer->next = t; /* 下一个是t */
+		timerctl.next = timer->timeout;
+		__enable_irq();
+		return;
+	}
+	/* 寻找中间的位置 */
+	for (;;) {
+		s = t;
+		t = t->next;
+		if (timer->timeout <= t->timeout) {
+			/* s和t的中间进行插入 */
+			s->next = timer; /* s下一个是timer */
+			timer->next = t; /* timer上一个是t */
+			__enable_irq();
+			return;
 		}
 	}
-	/* i之后的位置后移一位 */
-	for (j = timerctl.usings; j > i; j--) {
-		timerctl.timers[j] = timerctl.timers[j - 1];
-	}
-	timerctl.usings++;
-	/* 插入到空位上 */
-	timerctl.timers[i] = timer;
-	timerctl.next = timerctl.timers[0]->timeout;
-	__enable_irq();
-
-	return;
 }
-
 
 
 

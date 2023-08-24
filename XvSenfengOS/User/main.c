@@ -23,10 +23,13 @@ int main()
 			i = FIFO8_Get(&EventFlog.System_Flags);
 			if(i==1 || i==2)
 			{
+				//处理的事件是触摸屏
 				XPT2046_TouchEvenHandler(i);
 			}else if(i>2 && i<7){
+				//处理的事件是按键
 				Key_TouchEventHandler(i);
 			}else{
+				//处理的事件是定时器
 			Time_OutEventHandler(i);
 			}
 		}	

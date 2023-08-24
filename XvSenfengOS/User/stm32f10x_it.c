@@ -328,35 +328,27 @@ void  TOUCH_TIM_IRQHandler (void)
   */
 void  TIME_TIM_IRQHandler (void)
 {
-	int i, j;
+	struct TIMER *timer;
 	if ( TIM_GetITStatus( TIME_TIM, TIM_IT_Update) != RESET ) 
 	{	
 		timerctl.count++;
 		if (timerctl.next > timerctl.count) {
-			TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update);  		 
+			TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update); 
 			return;
 		}
-		for (i = 0; i < timerctl.usings; i++) {
-			/* 记录有几个时钟到期 */
-			if (timerctl.timers[i]->timeout > timerctl.count) {
+		timer = timerctl.t0; /* 获取链表的起始位置 */
+		for (;;) {
+			/* 寻找下一个时序的位置 */
+			if (timer->timeout > timerctl.count) {
 				break;
 			}
-			/* 对时钟进行处理 */
-			timerctl.timers[i]->flags = TIMER_FLAGS_ALLOC;
-			fifo8_put(timerctl.timers[i]->fifo, timerctl.timers[i]->data);
+			/* タイムアウト */
+			timer->flags = TIMER_FLAGS_ALLOC;
+			fifo8_put(timer->fifo, timer->data);
+			timer = timer->next; /* 次のタイマの番地をtimerに代入 */
 		}
-		/* 调整其他时钟的位置 */
-		timerctl.usings -= i;
-		for (j = 0; j < timerctl.usings; j++) {
-			timerctl.timers[j] = timerctl.timers[i + j];
-		}
-		if (timerctl.usings > 0) {
-			//有待处理的时钟
-			timerctl.next = timerctl.timers[0]->timeout;
-		} else {
-			//没有待处理的时钟
-			timerctl.next = 0xffffffff;
-		}
+		timerctl.t0 = timer;
+		timerctl.next = timer->timeout;		
 		TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update);  		 
 	}		 	
 }
