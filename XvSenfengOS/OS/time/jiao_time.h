@@ -24,6 +24,6 @@ struct TIMERCTL {
 
 void Timer_init(void);
 void init_time_ctl(void);
-void Time_OutEventHandler(void);
+void Time_OutEventHandler(int i);
 
 #endif

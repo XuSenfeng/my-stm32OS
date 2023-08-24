@@ -30,6 +30,7 @@
 #include "jiao_os.h"
 #include "./task/jiao_task.h"
 #include "./time/jiao_time.h"
+#include "jiao_os.h"
 extern struct Event_Flog EventFlog;
 extern struct TIMERCTL timerctl;
 uint32_t time=0;
@@ -261,10 +262,9 @@ void EXTI0_IRQHandler(void)
 	if(EXTI_GetITStatus(EXTI_Line0) != RESET)
 	{
 		if(KEY1_Read()==KEY_ON)
-			EventFlog.Key1_num=1;
+			fifo8_put(&EventFlog.System_Flags, KEY1_DOWN);
 		if(KEY1_Read()==KEY_OFF)
-			EventFlog.Key1_num=2;
-
+			fifo8_put(&EventFlog.System_Flags, KEY1_UP);
 		EXTI_ClearITPendingBit(EXTI_Line0);
 	}
 }
@@ -278,9 +278,9 @@ void EXTI15_10_IRQHandler(void)
 	if(EXTI_GetITStatus(EXTI_Line13) != RESET)
 	{
 		if(KEY2_Read()==KEY_ON)
-			EventFlog.Key2_num=1;
+			fifo8_put(&EventFlog.System_Flags, KEY2_DOWN);
 		if(KEY2_Read()==KEY_OFF)
-			EventFlog.Key2_num=2;
+			fifo8_put(&EventFlog.System_Flags, KEY2_UP);
 		EXTI_ClearITPendingBit(EXTI_Line13);
 	}
 }
@@ -302,9 +302,11 @@ void  TOUCH_TIM_IRQHandler (void)
 		//判断现在的时钟触摸屏状态
 		if(XPT2046_PENIRQ_Read() == Bit_RESET)
 		{
-			EventFlog.Touch_num=1;
+			fifo8_put(&EventFlog.System_Flags, TOUCH_DOWN);
 		}else
 		{
+			fifo8_put(&EventFlog.System_Flags, TOUCH_UP);
+
 			TIM_Cmd(TOUCH_TIM, DISABLE);
 			EXTI_InitTypeDef EXTI_InitStruct;
 			EXTI_InitStruct.EXTI_Line = EXTI_Line4;	//设置为EXTI0

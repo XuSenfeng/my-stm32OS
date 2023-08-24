@@ -24,7 +24,7 @@
 #define             KEY2_Read()                          GPIO_ReadInputDataBit ( KEY2_GPIO_PORT, KEY2_GPIO_PIN )
 
 void Key_GPIO_Config(void);
-void Key_TouchEventHandler(void);
+void Key_TouchEventHandler(int i);
 
 #endif /* __KEY_H */
 

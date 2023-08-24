@@ -1,9 +1,10 @@
 #include "jiao_os.h"
+extern struct Event_Flog EventFlog;
 
 
 int main()
 {
-//	int i;
+	int i;
 	JIAO_OS_Init();
 
 #if Jiao_Debug
@@ -17,9 +18,19 @@ int main()
 #endif
 	while(1){
 		//检测触控屏按压事件
-		XPT2046_TouchEvenHandler();
-		Key_TouchEventHandler();
-		Time_OutEventHandler();
+		if(FIFO8_Status(&EventFlog.System_Flags))
+		{
+			i = FIFO8_Get(&EventFlog.System_Flags);
+			if(i==1 || i==2)
+			{
+				XPT2046_TouchEvenHandler(i);
+			}else if(i>2 && i<7){
+				Key_TouchEventHandler(i);
+			}else{
+			Time_OutEventHandler(i);
+			}
+		}	
+
 		__WFI();	//WFI指令进入睡眠
 
 		

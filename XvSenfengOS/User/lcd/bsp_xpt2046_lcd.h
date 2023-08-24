@@ -137,7 +137,7 @@ uint8_t XPT2046_Touch_Calibrate( uint8_t LCD_Mode );
 uint8_t XPT2046_Get_TouchedPoint( strType_XPT2046_Coordinate * displayPtr, strType_XPT2046_TouchPara * para );
 void XPT2046_TouchDown(strType_XPT2046_Coordinate * touch);
 void XPT2046_TouchUp(strType_XPT2046_Coordinate * touch);
-void XPT2046_TouchEvenHandler(void );
+void XPT2046_TouchEvenHandler(int i);
 void Calibrate_or_Get_TouchParaWithFlash(uint8_t LCD_Mode,uint8_t forceCal);
 
 #endif /* __BSP_TOUCH_H */

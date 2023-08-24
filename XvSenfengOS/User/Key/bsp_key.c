@@ -89,32 +89,25 @@ void Key_GPIO_Config(void)
   * @param  нч
   * @retval нч
   */
-void Key_TouchEventHandler()
+void Key_TouchEventHandler(int i)
 {
 	
-	if(EventFlog.Key1_num | EventFlog.Key2_num)
-	{
-		if(EventFlog.Key1_num==1)
+		if(i==KEY1_DOWN)
 		{
 			printf("Key1 down\n");
-			EventFlog.Key1_num=0;
 		}
-		if(EventFlog.Key1_num==2)
+		if(i==KEY1_UP)
 		{
 			printf("Key1 up\n");
-			EventFlog.Key1_num=0;
 		}
-		if(EventFlog.Key2_num==1)
+		if(i==KEY2_DOWN)
 		{
 			printf("Key2 down\n");
-			EventFlog.Key2_num=0;
 		}
-		if(EventFlog.Key2_num==2)
+		if(i==KEY2_UP)
 		{
 			printf("Key2 up\n");
-			EventFlog.Key2_num=0;
 		}				
-	}
 	
 	
 }

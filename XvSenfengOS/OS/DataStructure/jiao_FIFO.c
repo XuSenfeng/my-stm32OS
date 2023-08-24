@@ -25,7 +25,7 @@ int fifo8_put(struct FIFO8 *fifo, char data)
 {
 	if(fifo->free==0)
 	{
-		fifo->flags |= FLASG_OVERRUN;
+		fifo->flags |= FLAGS_OVERRUN;
 		return -1;
 	}
 	fifo->buf[fifo->next_w] = data;
@@ -69,5 +69,56 @@ int FIFO8_Status(struct FIFO8 *fifo)
 }
 
 
+void fifo32_init(struct FIFO32 *fifo, int size, int *buf)
+/* FIFO初始化 */
+{
+	fifo->size = size;
+	fifo->buf = buf;
+	fifo->free = size; /* 设置为fifo的大小 */
+	fifo->flags = 0;
+	fifo->p = 0; /* 设置为初始的位置 */
+	fifo->q = 0; /* 读取的位置设置为起始的位置 */
+	return;
+}
+
+int fifo32_put(struct FIFO32 *fifo, int data)
+/* FIFO放入一个数据 */
+{
+	if (fifo->free == 0) {
+		/* 没有空位 */
+		fifo->flags |= FLAGS_OVERRUN;
+		return -1;
+	}
+	fifo->buf[fifo->p] = data;
+	fifo->p++;
+	if (fifo->p == fifo->size) {
+		fifo->p = 0;
+	}
+	fifo->free--;
+	return 0;
+}
+
+int fifo32_get(struct FIFO32 *fifo)
+/* FIFO获取一个数字 */
+{
+	int data;
+	if (fifo->free == fifo->size) {
+		/* 没有可以获取的数字 */
+		return -1;
+	}
+	data = fifo->buf[fifo->q];
+	fifo->q++;
+	if (fifo->q == fifo->size) {
+		fifo->q = 0;
+	}
+	fifo->free++;
+	return data;
+}
+
+int fifo32_status(struct FIFO32 *fifo)
+/* 获取剩余的空间 */
+{
+	return fifo->size - fifo->free;
+}
 
 

@@ -30,8 +30,7 @@ static void Hareware_Init(void)
 	Key_GPIO_Config();
 	//绘制桌面
 	Draw_Dasktop();
-	//设置时间计数器
-	Timer_init();
+
 }
 
 /**
@@ -50,18 +49,17 @@ static void System_data_Init(void)
 	//make_window8(uint16_t *buf, int xsize, int ysize, char *title)
 
 	//标志位的设置
-	EventFlog.Key1_num = 0;
-	EventFlog.Key2_num = 0;
-	EventFlog.Touch_num = 0;
-
+	FIFO8_Init(&EventFlog.System_Flags, 16, EventFlog.system_flags_buf);
+	//设置时间计数器
+	Timer_init();
 }
 
 
 void JIAO_OS_Init(void)
 {
+
 	Hareware_Init();
 	System_data_Init();
-
 }
 
 

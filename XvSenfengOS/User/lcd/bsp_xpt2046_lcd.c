@@ -893,11 +893,11 @@ void XPT2046_TouchUp(strType_XPT2046_Coordinate * touch)
 	* @param   none
 	* @retval  none
 	*/
-void XPT2046_TouchEvenHandler(void )
+void XPT2046_TouchEvenHandler(int i)
 {
 	  static strType_XPT2046_Coordinate cinfo={-1,-1,-1,-1};
 	
-		if( EventFlog.Touch_num)
+		if(i==1)
 		{
 			LED_GREEN;
 			
@@ -914,12 +914,10 @@ void XPT2046_TouchEvenHandler(void )
 			
 			/*更新触摸信息到pre xy*/
 			cinfo.pre_x = cinfo.x; cinfo.pre_y = cinfo.y;  
-			EventFlog.Touch_num=0;
 		}
 		else
 		{
 			LED_BLUE;
-			
 			//调用触摸被释放时的处理函数，可在该函数编写自己的触摸释放处理过程
 			XPT2046_TouchUp(&cinfo); 
 			

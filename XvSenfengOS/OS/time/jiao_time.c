@@ -8,8 +8,7 @@
 struct TIMERCTL timerctl;
 struct TIMER * timer1;
 struct TIMER * timer2;
-struct FIFO8 timerfifo;
-uint8_t timerbuf[8];
+extern struct Event_Flog EventFlog;
 
 
 
@@ -115,12 +114,11 @@ void timer_settime(struct TIMER *timer, unsigned int timeout)
 void Timer_init()
 {
 
-	FIFO8_Init(&timerfifo, 8, timerbuf);
 
 	timer1 = timer_alloc();
 	timer2 = timer_alloc();
-	timer_init(timer1, &timerfifo, 1);
-	timer_init(timer2, &timerfifo, 2);
+	timer_init(timer1, &EventFlog.System_Flags, TIM0_FLAG);
+	timer_init(timer2, &EventFlog.System_Flags, TIM1_FLAG);
 	timer_settime(timer1, 1000);
 	timer_settime(timer2, 500);
 }
@@ -129,22 +127,18 @@ void Timer_init()
   * @param  None
   * @retval None
   */
-void Time_OutEventHandler()
+void Time_OutEventHandler(int i)
 {
-	static uint8_t i = 0;
-	if(FIFO8_Status(&timerfifo))
+	
+	if(i==TIM0_FLAG)	
 	{
-		
-		i = FIFO8_Get(&timerfifo);
-		if(i==1)	
-		{
-			printf("\ntime1out i = %d\n\n", i);
-			timer_settime(timer1, 1000);
-		}else if(i==2)
-		{
-			printf("\ntime2out i = %d\n\n", i);
-			timer_settime(timer2, 500);
-		}
+		printf("\ntime1out i = %d\n\n", i);
+		timer_settime(timer1, 1000);
+	}else if(i==TIM1_FLAG)
+	{
+		printf("\ntime2out i = %d\n\n", i);
+		timer_settime(timer2, 500);
 	}
+
 	
 }
