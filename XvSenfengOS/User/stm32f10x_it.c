@@ -319,31 +319,41 @@ void  TOUCH_TIM_IRQHandler (void)
 }
 
 
-
+/**
+  * @brief  时钟中断函数,用于记录时间
+  * @param  无
+  * @retval None
+  */
 void  TIME_TIM_IRQHandler (void)
 {
-	int i;
+	int i, j;
 	if ( TIM_GetITStatus( TIME_TIM, TIM_IT_Update) != RESET ) 
 	{	
 		timerctl.count++;
 		if (timerctl.next > timerctl.count) {
 			TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update);  		 
-			return; /* 没有到下一个时刻 */
+			return;
 		}
-		timerctl.next = 0xffffffff;
-		for (i = 0; i < MAX_TIMER; i++) {
-			if (timerctl.timer[i].flags == TIMER_FLAGS_USING) {
-				if (timerctl.timer[i].timeout <= timerctl.count) {
-					/* 超时 */
-					timerctl.timer[i].flags = TIMER_FLAGS_ALLOC;
-					fifo8_put(timerctl.timer[i].fifo, timerctl.timer[i].data);
-				} else {
-					/* 没有超时 */
-					if (timerctl.next > timerctl.timer[i].timeout) {
-						timerctl.next = timerctl.timer[i].timeout;
-					}
-				}
+		for (i = 0; i < timerctl.usings; i++) {
+			/* 记录有几个时钟到期 */
+			if (timerctl.timers[i]->timeout > timerctl.count) {
+				break;
 			}
+			/* 对时钟进行处理 */
+			timerctl.timers[i]->flags = TIMER_FLAGS_ALLOC;
+			fifo8_put(timerctl.timers[i]->fifo, timerctl.timers[i]->data);
+		}
+		/* 调整其他时钟的位置 */
+		timerctl.usings -= i;
+		for (j = 0; j < timerctl.usings; j++) {
+			timerctl.timers[j] = timerctl.timers[i + j];
+		}
+		if (timerctl.usings > 0) {
+			//有待处理的时钟
+			timerctl.next = timerctl.timers[0]->timeout;
+		} else {
+			//没有待处理的时钟
+			timerctl.next = 0xffffffff;
 		}
 		TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update);  		 
 	}		 	

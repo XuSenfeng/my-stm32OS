@@ -12,8 +12,13 @@ struct TIMER {
 	unsigned char data;
 };
 struct TIMERCTL {
-	unsigned int count, next;
-	struct TIMER timer[MAX_TIMER];
+	//记录开机到现在的时间,下一个需要处理的时间,正在使用的时钟的数量
+	unsigned int count, next, usings;
+	//记录待处理的时钟
+	struct TIMER *timers[MAX_TIMER];
+	//记录所有的时钟
+	struct TIMER timers0[MAX_TIMER];
+	
 };
 
 
