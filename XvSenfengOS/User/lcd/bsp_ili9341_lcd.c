@@ -1378,7 +1378,7 @@ void ILI9341_DispString_CH ( 	uint16_t usX , uint16_t usY, char * pStr )
 		}	
 		
 		usCh = * ( uint16_t * ) pStr;	
-	  usCh = ( usCh << 8 ) + ( usCh >> 8 );
+		usCh = ( usCh << 8 ) + ( usCh >> 8 );
 
 		ILI9341_DispChar_CH ( usX, usY, usCh );
 		

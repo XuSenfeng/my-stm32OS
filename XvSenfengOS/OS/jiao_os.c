@@ -38,17 +38,21 @@ static void Hareware_Init(void)
   * @param  无
   * @retval None
   */
+uint8_t buf_win[60*52];
 static void System_data_Init(void)
 {
 	//初始化鼠标的数据
 	Mouse_def.Width = MOUSE_WIDTH;
 	Mouse_def.High = MOUSE_HIGH;
+	//初始化鼠标的数组
 	init_mouse_cursor8(Mouse_def.mouse);
+	make_window8(buf_win, 60, 52, "焦");
+	
 	//初始化图层
 	sheet_init();
 	//make_window8(uint16_t *buf, int xsize, int ysize, char *title)
-
-	//标志位的设置
+	
+	//标志位的初始化
 	FIFO8_Init(&EventFlog.System_Flags, 16, EventFlog.system_flags_buf);
 	//设置时间计数器
 	Timer_init();
@@ -57,9 +61,9 @@ static void System_data_Init(void)
 
 void JIAO_OS_Init(void)
 {
-
 	Hareware_Init();
 	System_data_Init();
+
 }
 
 

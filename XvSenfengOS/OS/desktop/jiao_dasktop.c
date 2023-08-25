@@ -1,7 +1,7 @@
 #include "jiao_dasktop.h"
 
 
-extern struct SHEET * Mouse_sht;
+extern struct SHEET * Mouse_sht, * Windoes_sht;
 
 //保存原本的颜色
 extern uint16_t Old_Color[20*40];
@@ -212,6 +212,7 @@ void Draw_Mouse(uint16_t x, uint16_t y)
 	Mouse_def.x = x;
 	Mouse_def.y = y;
 	sheet_slide(Mouse_sht, x, y);
+	
 	//putblock8_8(x, y, Mouse_def.Width, Mouse_def.High, Mouse_def.mouse);
 }
 /**
@@ -264,10 +265,13 @@ void buf_fill8(uint8_t *buf, int xsize, uint8_t c, int x0, int y0, int x1, int y
 	uint8_t ucBuffer [ WIDTH_CH_CHAR*HEIGHT_CH_CHAR/8 ];	
 	uint8_t rowCount, bitCount;
 	uint16_t usTemp; 	
-	uint8_t * Char_End = "\0";
-	while(*title != *Char_End)
+	uint16_t usCh;
+	
+	while(* title != '\0')
 	{
-		GetGBKCode ( ucBuffer, *title );	
+		usCh = * ( uint16_t * ) title;	
+		usCh = ( usCh << 8 ) + ( usCh >> 8 );
+		GetGBKCode ( ucBuffer, usCh);
 
 		for ( rowCount = 0; rowCount < HEIGHT_CH_CHAR; rowCount++ )
 		{
@@ -279,10 +283,11 @@ void buf_fill8(uint8_t *buf, int xsize, uint8_t c, int x0, int y0, int x1, int y
 			for ( bitCount = 0; bitCount < WIDTH_CH_CHAR; bitCount ++ )
 			{			
 				if ( usTemp & ( 0x8000 >> bitCount ) )  //高位在前,这个是显示的位置 
-				  buf[x + y*xsize] = color;
+				  buf[x +bitCount + (y+rowCount)*xsize] = color;
 			}		
 		}
-		title++;
+		x += WIDTH_CH_CHAR;
+		title+=2;
 	}
 }
 
@@ -322,7 +327,7 @@ void make_window8(uint8_t *buf, int xsize, int ysize, char *title)
 	buf_fill8(buf, xsize, COL8_000084, 3,         3,         xsize - 4, 20       );
 	buf_fill8(buf, xsize, COL8_848484, 1,         ysize - 2, xsize - 2, ysize - 2);
 	buf_fill8(buf, xsize, COL8_000000, 0,         ysize - 1, xsize - 1, ysize - 1);
-	putfonts8_asc(buf, xsize, 24, 4, COL8_FFFFFF, title);
+	putfonts8_asc(buf, xsize, 4, 4, COL8_FFFFFF, title);
 	for (y = 0; y < 14; y++) {
 		for (x = 0; x < 16; x++) {
 			c = closebtn[y][x];

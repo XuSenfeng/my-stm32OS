@@ -3,9 +3,10 @@
 
 #define SHEET_USE		1
 //图层控制结构体
-static struct SHTCTL ctl;
-struct SHEET * Mouse_sht;
+struct SHTCTL ctl;
+struct SHEET * Mouse_sht, * Windoes_sht;
 extern Mouse_Message_Def Mouse_def;
+extern uint8_t buf_win[120*52];
 
 /**
   * @brief  初始化图层控制结构体
@@ -117,8 +118,6 @@ void sheet_refreshsub(int vx0, int vy0, int vx1, int vy1)
 		}
 		
 	}
-	printf("***********width = %d, high = %d**********\n", width, high);
-	printf("***********vx0 = %d, vy0 = %d %d %d**********\n\n", vx0, vy0, vy1, vx1);
 
 	boxfill_buf(temp_buf, vx0, vy0, width, high );
 	free(temp_buf);
@@ -230,6 +229,7 @@ void sheet_free(struct SHTCTL *ctl, struct SHEET *sht)
 
 void sheet_init(void)
 {
+
 	//初始化管理的结构体
 	shtctl_init(ILI9341_MORE_PIXEL, ILI9341_LESS_PIXEL);
 	//申请鼠标结构体
@@ -238,7 +238,13 @@ void sheet_init(void)
 	sheet_setbuf(Mouse_sht, Mouse_def.mouse, Mouse_def.Width, Mouse_def.High, 	0x9999);
 	Mouse_sht->vx0 = 310;
 	Mouse_sht->vy0 = 200;
+	
+	Windoes_sht = sheet_alloc(&ctl);
+	sheet_setbuf(Windoes_sht, buf_win, 60, 52, 0x9999);
+	Windoes_sht->vx0 = 20;
+	Windoes_sht->vy0 = 20;
+	
+	sheet_updown(&ctl, Windoes_sht, 1);
 	sheet_updown(&ctl, Mouse_sht, MAX_SHEETS);
-
 }
 

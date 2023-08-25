@@ -10,12 +10,13 @@ int main()
 #if Jiao_Debug
 
 	printf("**********************************\n\n");
-	//test();
-	Task_main();
+	test();
+	//Task_main();
 #endif
 #if USE_OF_MOUSE
 	Draw_Mouse(160, 120);
 #endif
+
 	while(1){
 		//¼ì²â´¥¿ØÆÁ°´Ñ¹ÊÂ¼þ
 		if(FIFO8_Status(&EventFlog.System_Flags))
