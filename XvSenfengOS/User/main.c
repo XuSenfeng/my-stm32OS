@@ -1,6 +1,6 @@
 #include "jiao_os.h"
 extern struct Event_Flog EventFlog;
-
+int main_stack 
 
 int main()
 {

@@ -6,8 +6,7 @@
 
 
 struct TIMERCTL timerctl;
-struct TIMER * timer1;
-struct TIMER * timer2;
+struct TIMER * mt_timer;
 extern struct Event_Flog EventFlog;
 
 
@@ -123,12 +122,8 @@ void Timer_init()
 {
 
 
-	timer1 = timer_alloc();
-	timer2 = timer_alloc();
-	timer_init(timer1, &EventFlog.System_Flags, TIM0_FLAG);
-	timer_init(timer2, &EventFlog.System_Flags, TIM1_FLAG);
-	timer_settime(timer1, 1000);
-	timer_settime(timer2, 500);
+	mt_timer = timer_alloc();
+	timer_settime(mt_timer, 200);
 }
 /**
   * @brief  在main函数中调用的对时钟超时的处理函数
