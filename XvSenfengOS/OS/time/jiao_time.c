@@ -6,7 +6,7 @@
 
 
 struct TIMERCTL timerctl;
-struct TIMER * mt_timer;
+struct TIMER * timer1, *timer2;
 extern struct Event_Flog EventFlog;
 
 
@@ -122,8 +122,12 @@ void Timer_init()
 {
 
 
-	mt_timer = timer_alloc();
-	timer_settime(mt_timer, 200);
+	timer1 = timer_alloc();
+	timer_init(timer1, &EventFlog.System_Flags, TIM1_FLAG);
+	//timer_settime(timer1, 500);
+	timer2 = timer_alloc();
+	timer_init(timer2, &EventFlog.System_Flags, TIM2_FLAG);
+	//timer_settime(timer2, 1000);
 }
 /**
   * @brief  在main函数中调用的对时钟超时的处理函数
@@ -133,11 +137,11 @@ void Timer_init()
 void Time_OutEventHandler(int i)
 {
 	
-	if(i==TIM0_FLAG)	
+	if(i==TIM1_FLAG)	
 	{
 		printf("\ntime1out i = %d\n\n", i);
 		timer_settime(timer1, 1000);
-	}else if(i==TIM1_FLAG)
+	}else if(i==TIM2_FLAG)
 	{
 		printf("\ntime2out i = %d\n\n", i);
 		timer_settime(timer2, 500);

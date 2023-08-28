@@ -238,7 +238,7 @@ void EXTI4_IRQHandler(void)
 
 	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
 	{
-
+		printf("触摸中断\n");
 		//使能时钟用来进行消抖
 		TIM_Cmd(TOUCH_TIM, ENABLE);
 		//关闭自己的中断
@@ -261,6 +261,7 @@ void EXTI0_IRQHandler(void)
 {
 	if(EXTI_GetITStatus(EXTI_Line0) != RESET)
 	{
+		
 		if(KEY1_Read()==KEY_ON)
 			fifo8_put(&EventFlog.System_Flags, KEY1_DOWN);
 		if(KEY1_Read()==KEY_OFF)
@@ -331,6 +332,7 @@ void  TIME_TIM_IRQHandler (void)
 	struct TIMER *timer;
 	if ( TIM_GetITStatus( TIME_TIM, TIM_IT_Update) != RESET ) 
 	{	
+
 		timerctl.count++;
 		if (timerctl.next > timerctl.count) {
 			TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update); 
@@ -348,7 +350,7 @@ void  TIME_TIM_IRQHandler (void)
 			timer = timer->next; /* 次のタイマの番地をtimerに代入 */
 		}
 		timerctl.t0 = timer;
-		timerctl.next = timer->timeout;		
+		timerctl.next = timer->timeout;	
 		TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update);  		 
 	}		 	
 }

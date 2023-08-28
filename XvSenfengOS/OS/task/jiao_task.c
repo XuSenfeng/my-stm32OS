@@ -1,10 +1,10 @@
 #include "./task/jiao_task.h"
 
 //定义任务栈
-#define TASK1_STACK_SIZE                    30
+#define TASK1_STACK_SIZE                    80
 uint32_t Task1Stack[TASK1_STACK_SIZE];
 
-#define TASK2_STACK_SIZE                    30
+#define TASK2_STACK_SIZE                    80
 uint32_t Task2Stack[TASK2_STACK_SIZE];
 //任务控制块
 TCB_t Task1TCB;
@@ -12,8 +12,14 @@ TCB_t Task2TCB;
 //任务句柄
 TaskHandle_t Task1_Handle;
 TaskHandle_t Task2_Handle;
+extern struct TIMER * timer1, *timer2;
+extern struct Event_Flog EventFlog;
 
 TCB_t * volatile pxCurrentTCB = NULL;
+
+//临界段使用的变量
+static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
+
 
 
 //运行的任务
@@ -33,19 +39,25 @@ uint8_t flag1;
   * @retval None
   */
 void Task1_Entry( void *p_arg )
-{
+{	
+	int i;
+	timer_settime(timer1, 100);
+
 	for( ;; )
 	{
-		flag1 = 1;
-		delay( 0xfff );	
-		printf("test1ON");
-
-		flag1 = 0;
-		delay( 0xfff );	
-		printf("test1OFF");
-		/* 任务切换，这里是手动切换 */
-        taskYIELD();
-
+		if(FIFO8_Status(&EventFlog.System_Flags))
+		{
+			i = FIFO8_Get(&EventFlog.System_Flags);
+		
+			if(i==TIM1_FLAG)	
+			{
+				LED2_TOGGLE;
+				taskYIELD();
+				timer_settime(timer1, 100);
+			}
+		}
+		__WFI();
+		
 	}
 }
 uint8_t flag2;
@@ -57,18 +69,25 @@ uint8_t flag2;
   */
 void Task2_Entry( void *p_arg )
 {
+	int i;
+
+	timer_settime(timer2, 200);
+
 	for( ;; )
 	{
-
-		flag2 = 1;
-		delay( 0xfff );	
-		printf("test2ON");
-		flag2 = 0;
-		delay( 0xfff );	
-		printf("test2OFF");
-
-		/* 任务切换，这里是手动切换 */
-        taskYIELD();
+		if(FIFO8_Status(&EventFlog.System_Flags))
+		{
+			i = FIFO8_Get(&EventFlog.System_Flags);
+		
+			if(i==TIM2_FLAG)	
+			{
+				LED1_TOGGLE;
+				taskYIELD();
+				timer_settime(timer2, 200);
+				
+			}
+		}
+		__WFI();
 	}
 }
 /**
@@ -303,7 +322,37 @@ void vTaskSwitchContext( void )
     }
 }
 
+/*
+*************************************************************************
+*                             临界段相关函数
+*************************************************************************
+*/
+void vPortEnterCritical( void )
+{
+	portDISABLE_INTERRUPTS();
+	uxCriticalNesting++;
 
+	/* This is not the interrupt safe version of the enter critical function so
+	assert() if it is being called from an interrupt context.  Only API
+	functions that end in "FromISR" can be used in an interrupt.  Only assert if
+	the critical nesting count is 1 to protect against recursive calls if the
+	assert function also uses a critical section. */
+	if( uxCriticalNesting == 1 )
+	{
+		//configASSERT( ( portNVIC_INT_CTRL_REG & portVECTACTIVE_MASK ) == 0 );
+	}
+}
+
+void vPortExitCritical( void )
+{
+	//configASSERT( uxCriticalNesting );
+	uxCriticalNesting--;
+    
+	if( uxCriticalNesting == 0 )
+	{
+		portENABLE_INTERRUPTS();
+	}
+}
 #if Jiao_Debug
 /**
   * @brief  测试函数

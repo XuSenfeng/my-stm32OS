@@ -1,6 +1,6 @@
 #include "jiao_os.h"
 extern struct Event_Flog EventFlog;
-int main_stack 
+
 
 int main()
 {
@@ -10,8 +10,8 @@ int main()
 #if Jiao_Debug
 
 	printf("**********************************\n\n");
-	test();
-	//Task_main();
+	//test();
+	Task_main();
 #endif
 #if USE_OF_MOUSE
 	Draw_Mouse(160, 120);

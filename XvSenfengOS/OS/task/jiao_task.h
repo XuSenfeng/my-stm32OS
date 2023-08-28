@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include "jiao_os.h"
 #include "bsp_led.h"
+
+
 #define configMAX_TASK_NAME_LEN		            ( 16 )
 #define configMAX_PRIORITIES		            ( 5 )
 #define portINITIAL_XPSR			        ( 0x01000000 )
@@ -54,8 +56,10 @@ typedef long BaseType_t;
 //设置悬起位的函数,之后会调用PandSV函数
 #define portYIELD()																\
 {																				\
+	portDISABLE_INTERRUPTS();													\
 	/* 触发PendSV，产生上下文切换 */								                \
 	portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;								\
+	portENABLE_INTERRUPTS();													\
 	__dsb( portSY_FULL_READ_WRITE );											\
 	__isb( portSY_FULL_READ_WRITE );											\
 }
@@ -83,8 +87,71 @@ static void prvInitialiseNewTask( 	TaskFunction_t pxTaskCode,              /* 任
 void prvInitialiseTaskLists( void );
 BaseType_t xPortStartScheduler( void );
 void vTaskSwitchContext( void );
+
+
+/* 临界区管理 */
+extern void vPortEnterCritical( void );
+extern void vPortExitCritical( void );
 									
+//临界区
+#ifndef portFORCE_INLINE
+	#define portFORCE_INLINE __forceinline
+#endif
 									
+#define portDISABLE_INTERRUPTS()				vPortRaiseBASEPRI()
+#define portENABLE_INTERRUPTS()					vPortSetBASEPRI( 0 )
+
+
+#define portSET_INTERRUPT_MASK_FROM_ISR()		ulPortRaiseBASEPRI()
+#define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	vPortSetBASEPRI(x)
+
+#define portENTER_CRITICAL()					vPortEnterCritical()
+#define portEXIT_CRITICAL()						vPortExitCritical()
+
+static portFORCE_INLINE void vPortRaiseBASEPRI( void )//没有返回值,不能在中断中使用
+{
+uint32_t ulNewBASEPRI = configMAX_SYSCALL_INTERRUPT_PRIORITY;
+
+	__asm
+	{
+		/* Set BASEPRI to the max syscall priority to effect a critical
+		section. */
+		msr basepri, ulNewBASEPRI
+		dsb
+		isb
+	}
+}
+
+
+static portFORCE_INLINE uint32_t ulPortRaiseBASEPRI( void )//有返回值,会先保存之前的屏蔽等级
+{
+uint32_t ulReturn, ulNewBASEPRI = configMAX_SYSCALL_INTERRUPT_PRIORITY;
+
+	__asm
+	{
+		/* Set BASEPRI to the max syscall priority to effect a critical
+		section. */
+		mrs ulReturn, basepri
+		msr basepri, ulNewBASEPRI
+		dsb
+		isb
+	}
+
+	return ulReturn;
+}
+
+
+static portFORCE_INLINE void vPortSetBASEPRI( uint32_t ulBASEPRI )
+{
+	__asm
+	{
+		/* Barrier instructions are not used as this function is only used to
+		lower the BASEPRI value. */
+		msr basepri, ulBASEPRI
+	}
+}
+
+
 #if Jiao_Debug
 
 void Task_main(void);

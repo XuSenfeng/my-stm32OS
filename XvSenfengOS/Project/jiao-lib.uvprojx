@@ -625,6 +625,11 @@
               <FileType>1</FileType>
               <FilePath>..\OS\time\jiao_time.c</FilePath>
             </File>
+            <File>
+              <FileName>jiaoConfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\OS\jiaoConfig.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

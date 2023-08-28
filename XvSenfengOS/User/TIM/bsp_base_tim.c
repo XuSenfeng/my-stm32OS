@@ -41,25 +41,25 @@ static void TOUCH_TIM_NVIC_Config(void)
 {
     NVIC_InitTypeDef NVIC_InitStructure; 
     // 设置中断组为0
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);		
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);		
 		// 设置中断来源
     NVIC_InitStructure.NVIC_IRQChannel = TOUCH_TIM_IRQ ;	
 		// 设置主优先级为 0
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;	 
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;	 
 	  // 设置抢占优先级为3
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;	
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;	
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 	
 	
 	//计时时钟设置
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);		
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);		
 	// 设置中断来源
     NVIC_InitStructure.NVIC_IRQChannel = TIME_TIM_IRQ ;	
 	// 设置主优先级为 0
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;	 
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;	 
 	 // 设置抢占优先级为1
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;	
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 4;	
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 }
