@@ -29,7 +29,7 @@ uint16_t table_rgb565[17] = {
 };
 
 /**
-  * @brief  绘制一个长方形或者一条线
+  * @brief  绘制一个长方形或者一条线,直接在屏幕上绘制,主要用于绘制桌面
   * @param  设置颜的
   * @param  起始的位置x
   * @param  起始的位置y
@@ -45,7 +45,7 @@ void boxfill8(unsigned char c, int x0, int y0, int x1, int y1)
 }
 
 /**
-  * @brief  绘制一个长方形或者一条线
+  * @brief  绘制一个长方形或者一条线,主要用于在一个图层的数组中绘制
   * @param  设置颜的数组
   * @param  起始的位置x
   * @param  起始的位置y
@@ -65,7 +65,7 @@ void boxfill_buf(uint16_t *buf, int x0, int y0, int width, int height)
 	}
 }
 /**
-  * @brief  进行桌面图像的保存
+  * @brief  进行桌面图像的保存,将一块位置的桌面绘制在桌面对应的地址
   * @param  起始的位置x
   * @param  起始的位置y
   * @param  结束的位置x
@@ -90,7 +90,7 @@ void flish_Disply_fill8(int x0, int y0, int x1, int y1)
 }
 
 /**
-  * @brief  绘制桌面, 初始化鼠标
+  * @brief  绘制桌面,初始化鼠标
   * @param  无
   * @retval None
   */
@@ -174,7 +174,7 @@ void init_mouse_cursor8(uint8_t *mouse)
 		".............***"
 	};
 	int x, y;
-
+	//根据上面的图形初始化鼠标的结构体
 	for (y = 0; y < 16; y++) {
 		for (x = 0; x < 16; x++) {
 			if (cursor[y][x] == '*') {
@@ -213,10 +213,9 @@ void Draw_Mouse(uint16_t x, uint16_t y)
 	Mouse_def.y = y;
 	sheet_slide(Mouse_sht, x, y);
 	
-	//putblock8_8(x, y, Mouse_def.Width, Mouse_def.High, Mouse_def.mouse);
 }
 /**
-  * @brief  获取一块区域的桌面图层
+  * @brief  获取一块区域的桌面图层,从Flash里面获取,这个主要用于图层化之后的绘制
   * @param  起始的位置x
   * @param  起始的位置y
   * @param  获取的宽

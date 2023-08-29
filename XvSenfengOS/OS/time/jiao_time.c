@@ -6,7 +6,7 @@
 
 
 struct TIMERCTL timerctl;
-struct TIMER * timer1, *timer2;
+struct TIMER * task_exchang_timer, *timer2;
 extern struct Event_Flog EventFlog;
 
 
@@ -120,11 +120,9 @@ void timer_settime(struct TIMER *timer, unsigned int timeout)
   */
 void Timer_init()
 {
-
-
-	timer1 = timer_alloc();
-	timer_init(timer1, &EventFlog.System_Flags, TIM1_FLAG);
-	//timer_settime(timer1, 500);
+	//在这里设置一个用于切换任务的函数
+	task_exchang_timer = timer_alloc();
+	timer_init(task_exchang_timer, &EventFlog.System_Flags, TIM1_FLAG);
 	timer2 = timer_alloc();
 	timer_init(timer2, &EventFlog.System_Flags, TIM2_FLAG);
 	//timer_settime(timer2, 1000);
@@ -140,7 +138,7 @@ void Time_OutEventHandler(int i)
 	if(i==TIM1_FLAG)	
 	{
 		printf("\ntime1out i = %d\n\n", i);
-		timer_settime(timer1, 1000);
+		timer_settime(task_exchang_timer, 1000);
 	}else if(i==TIM2_FLAG)
 	{
 		printf("\ntime2out i = %d\n\n", i);

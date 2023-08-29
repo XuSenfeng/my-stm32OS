@@ -66,7 +66,6 @@ void sheet_setbuf(struct SHEET *sht, uint8_t *buf, int xsize, int ysize, int col
   * @param  无
   * @retval None
   */
-	//uint16_t temp_buf[16*16];
 void sheet_refreshsub(int vx0, int vy0, int vx1, int vy1)
 {
 	int h, bx, by, bx0, by0, bx1, by1, vy, vx;
@@ -86,48 +85,53 @@ void sheet_refreshsub(int vx0, int vy0, int vx1, int vy1)
 	temp_buf = malloc(width * high *2);
 	if(temp_buf != NULL)
 	{
-	Get_Dasktop_Part(temp_buf, vx0, vy0, width, high);
-	for (h = 0; h <= ctl.top; h++) {
-		//遍历所有的图层
-		sht = ctl.sheets[h];
-		//获得图层信息
-		buf = sht->buf;
-		/* 获取临时图层更新位置相对于图层的位置 */
-		bx0 = vx0 - sht->vx0;
-		by0 = vy0 - sht->vy0;
-		bx1 = vx1 - sht->vx0;
-		by1 = vy1 - sht->vy0;	
-		printf("bx0 = %d %d", bx0, vx0);
-		//算出来相对位置是负数的时候会出现问题
-		if (bx0 < 0) { bx0 = 0;}
-		if (by0 < 0) { by0 = 0;}
-		if (bx1 > sht->bxsize) { bx1 = sht->bxsize; }
-		if (by1 > sht->bysize) { by1 = sht->bysize; }
-		//首先是临时图层在左边
+		Get_Dasktop_Part(temp_buf, vx0, vy0, width, high);
+		for (h = 0; h <= ctl.top; h++) {
+			//遍历所有的图层
+			sht = ctl.sheets[h];
+			//获得图层信息
+			buf = sht->buf;
+			/* 获取临时图层更新位置相对于图层的位置 */
+			bx0 = vx0 - sht->vx0;
+			by0 = vy0 - sht->vy0;
+			bx1 = vx1 - sht->vx0;
+			by1 = vy1 - sht->vy0;	
+			printf("bx0 = %d %d", bx0, vx0);
+			//算出来相对位置是负数的时候会出现问题
+			if (bx0 < 0) { bx0 = 0;}
+			if (by0 < 0) { by0 = 0;}
+			if (bx1 > sht->bxsize) { bx1 = sht->bxsize; }
+			if (by1 > sht->bysize) { by1 = sht->bysize; }
+			//首先是临时图层在左边
 
-		//临时图层在左上角
-		for (by = by0; by < by1; by++) {
-			vy = sht->vy0 + by;
-			for (bx = bx0; bx < bx1; bx++) {
-				vx = sht->vx0 + bx;
-				c = table_rgb565[buf[by * sht->bxsize + bx]];
-				if (c != sht->col_inv) {
-					temp_buf[(vy-vy0) * width + vx-vx0] = c;
+			//临时图层在左上角
+			for (by = by0; by < by1; by++) {
+				vy = sht->vy0 + by;
+				for (bx = bx0; bx < bx1; bx++) {
+					vx = sht->vx0 + bx;
+					c = table_rgb565[buf[by * sht->bxsize + bx]];
+					if (c != sht->col_inv) {
+						temp_buf[(vy-vy0) * width + vx-vx0] = c;
+					}
 				}
 			}
+			
 		}
-		
-	}
 
-	boxfill_buf(temp_buf, vx0, vy0, width, high );
-	free(temp_buf);
-}
+		boxfill_buf(temp_buf, vx0, vy0, width, high );
+		free(temp_buf);
+	}
 	else
 		printf("申请失败\n");
 }
 	
-
-//图层位置的变化
+/**
+  * @brief  图层位置的变化,高图层的会覆盖低图层,改变之后会刷新图层改变的位置
+  * @param  图层控制模块
+  * @param  刷新的图层
+  * @param  图层的新高度
+  * @retval None
+  */
 void sheet_updown(struct SHTCTL *ctl, struct SHEET *sht, int height)
 {
 	int h, old = sht->height; /* 保存改变之前的高度 */
@@ -227,6 +231,12 @@ void sheet_free(struct SHTCTL *ctl, struct SHEET *sht)
 	return;
 }
 
+
+/**
+  * @brief  这个是操作系统初始化时候调用的函数
+  * @param  None
+  * @retval None
+  */
 void sheet_init(void)
 {
 

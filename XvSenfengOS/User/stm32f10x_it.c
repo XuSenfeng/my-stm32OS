@@ -31,6 +31,8 @@
 #include "./task/jiao_task.h"
 #include "./time/jiao_time.h"
 #include "jiao_os.h"
+extern struct TIMER * task_exchang_timer, *timer2;
+
 extern struct Event_Flog EventFlog;
 extern struct TIMERCTL timerctl;
 uint32_t time=0;
@@ -330,12 +332,14 @@ void  TOUCH_TIM_IRQHandler (void)
 void  TIME_TIM_IRQHandler (void)
 {
 	struct TIMER *timer;
+	int exchange_flog=0;
 	if ( TIM_GetITStatus( TIME_TIM, TIM_IT_Update) != RESET ) 
 	{	
 
 		timerctl.count++;
 		if (timerctl.next > timerctl.count) {
-			TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update); 
+			TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update);
+
 			return;
 		}
 		timer = timerctl.t0; /* 获取链表的起始位置 */
@@ -344,14 +348,27 @@ void  TIME_TIM_IRQHandler (void)
 			if (timer->timeout > timerctl.count) {
 				break;
 			}
-			/* タイムアウト */
+			/* 找到要处理的定时器 */
 			timer->flags = TIMER_FLAGS_ALLOC;
 			fifo8_put(timer->fifo, timer->data);
-			timer = timer->next; /* 次のタイマの番地をtimerに代入 */
+			if(timer == task_exchang_timer)
+			{
+				//是任务的切换使用的计时器
+				exchange_flog=1;
+			}
+			timer = timer->next; /* 设置时间为下一个 */
+			printf("时间到\n");
+
+
 		}
 		timerctl.t0 = timer;
 		timerctl.next = timer->timeout;	
-		TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update);  		 
+		TIM_ClearITPendingBit(TIME_TIM , TIM_FLAG_Update); 
+		if(exchange_flog){
+			timer_settime(task_exchang_timer, 100);
+			taskYIELD();
+
+		}
 	}		 	
 }
 /**

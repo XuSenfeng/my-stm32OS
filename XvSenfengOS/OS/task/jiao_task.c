@@ -9,10 +9,10 @@ uint32_t Task2Stack[TASK2_STACK_SIZE];
 //任务控制块
 TCB_t Task1TCB;
 TCB_t Task2TCB;
-//任务句柄
+//任务句柄,实际上就是初始化之后的TCB,第一项是栈顶指针
 TaskHandle_t Task1_Handle;
 TaskHandle_t Task2_Handle;
-extern struct TIMER * timer1, *timer2;
+extern struct TIMER * task_exchang_timer, *timer2;
 extern struct Event_Flog EventFlog;
 
 TCB_t * volatile pxCurrentTCB = NULL;
@@ -41,22 +41,24 @@ uint8_t flag1;
 void Task1_Entry( void *p_arg )
 {	
 	int i;
-	timer_settime(timer1, 100);
-
+	timer_settime(task_exchang_timer, 100);
+	LED2_TOGGLE;
 	for( ;; )
 	{
+
 		if(FIFO8_Status(&EventFlog.System_Flags))
 		{
+			
 			i = FIFO8_Get(&EventFlog.System_Flags);
 		
 			if(i==TIM1_FLAG)	
 			{
 				LED2_TOGGLE;
-				taskYIELD();
-				timer_settime(timer1, 100);
 			}
-		}
-		__WFI();
+			printf("任务1\n");
+		}	
+
+		//__WFI();
 		
 	}
 }
@@ -71,23 +73,22 @@ void Task2_Entry( void *p_arg )
 {
 	int i;
 
-	timer_settime(timer2, 200);
-
 	for( ;; )
-	{
+	{	
+
 		if(FIFO8_Status(&EventFlog.System_Flags))
 		{
+
 			i = FIFO8_Get(&EventFlog.System_Flags);
 		
-			if(i==TIM2_FLAG)	
+			if(i==TIM1_FLAG)	
 			{
-				LED1_TOGGLE;
-				taskYIELD();
-				timer_settime(timer2, 200);
-				
+				LED1_TOGGLE;				
 			}
+			printf("任务2");
 		}
-		__WFI();
+
+		//__WFI();
 	}
 }
 /**
@@ -329,6 +330,8 @@ void vTaskSwitchContext( void )
 */
 void vPortEnterCritical( void )
 {
+	//关闭所有的中断
+
 	portDISABLE_INTERRUPTS();
 	uxCriticalNesting++;
 
@@ -345,7 +348,6 @@ void vPortEnterCritical( void )
 
 void vPortExitCritical( void )
 {
-	//configASSERT( uxCriticalNesting );
 	uxCriticalNesting--;
     
 	if( uxCriticalNesting == 0 )
@@ -353,7 +355,7 @@ void vPortExitCritical( void )
 		portENABLE_INTERRUPTS();
 	}
 }
-#if Jiao_Debug
+#if USE_TASK_MODE
 /**
   * @brief  测试函数
   * @param  无

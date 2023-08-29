@@ -68,6 +68,11 @@ int FIFO8_Status(struct FIFO8 *fifo)
 	return fifo->size - fifo->free;
 }
 
+/******************************************
++ 以下是32位的FIFO, 具体的介绍同上
+*******************************************/
+
+
 
 void fifo32_init(struct FIFO32 *fifo, int size, int *buf)
 /* FIFO初始化 */

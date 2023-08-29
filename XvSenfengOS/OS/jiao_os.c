@@ -19,13 +19,12 @@ static void Hareware_Init(void)
 	printf("你好\n");
 	//初始化屏幕
 	ILI9341_Init();
+	//初始化触摸屏
 	XPT2046_Init();
 	printf("初始化触摸屏, 同时初始化SPIFlash\n");
 	//从FLASH里获取校正参数，若FLASH无参数，则使用模式3进行校正
 	Calibrate_or_Get_TouchParaWithFlash(3,0);
 	printf("初始化屏幕,绘制桌面中\n");
-	//在这里清空屏幕
-	//ILI9341_Clear(0, 0, ILI9341_LESS_PIXEL, ILI9341_MORE_PIXEL);
 	//初始化按键
 	Key_GPIO_Config();
 	//绘制桌面
@@ -46,13 +45,13 @@ static void System_data_Init(void)
 	Mouse_def.High = MOUSE_HIGH;
 	//初始化鼠标的数组
 	init_mouse_cursor8(Mouse_def.mouse);
+	//初始化一个窗口的画面
 	make_window8(buf_win, 60, 52, "焦");
 	
 	//初始化图层
 	sheet_init();
-	//make_window8(uint16_t *buf, int xsize, int ysize, char *title)
 	
-	//标志位的初始化
+	//标志位的初始化,主要用于时钟,触摸位置以及按键
 	FIFO8_Init(&EventFlog.System_Flags, 16, EventFlog.system_flags_buf);
 	//设置时间计数器
 	Timer_init();
@@ -63,7 +62,6 @@ void JIAO_OS_Init(void)
 {
 	Hareware_Init();
 	System_data_Init();
-
 }
 
 

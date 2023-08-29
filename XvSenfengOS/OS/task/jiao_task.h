@@ -6,13 +6,16 @@
 #include "jiao_os.h"
 #include "bsp_led.h"
 
+//这是一些任务初始化使用的参数
 
+//任务的名字的最大个数
 #define configMAX_TASK_NAME_LEN		            ( 16 )
+//任务的等级
 #define configMAX_PRIORITIES		            ( 5 )
 #define portINITIAL_XPSR			        ( 0x01000000 )
 #define portSTART_ADDRESS_MASK				( ( StackType_t ) 0xfffffffeUL )
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY 	191   /* 高四位有效，即等于0xb0，或者是11 */
-//任务控制器
+//任务控制器,单个任务控制使用
 typedef struct tskTaskControlBlock
 {
 	volatile uint32_t    *pxTopOfStack;    /* 栈顶 */
@@ -23,6 +26,14 @@ typedef struct tskTaskControlBlock
 	                                          /* 任务名称，字符串形式 */
 	char                    pcTaskName[ configMAX_TASK_NAME_LEN ];  
 } tskTCB;
+
+struct TASKCTL {
+	int running; /* 正在运行的任务的数量 */
+	int now; /* 现在运行的任务 */
+	tskTCB *tasks[configMAX_PRIORITIES];
+	tskTCB tasks0[configMAX_PRIORITIES];
+};
+
 
 //内核控制寄存器
 #define portNVIC_SYSPRI2_REG				( * ( ( volatile uint32_t * ) 0xe000ed20 ) )
@@ -56,10 +67,8 @@ typedef long BaseType_t;
 //设置悬起位的函数,之后会调用PandSV函数
 #define portYIELD()																\
 {																				\
-	portDISABLE_INTERRUPTS();													\
 	/* 触发PendSV，产生上下文切换 */								                \
 	portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;								\
-	portENABLE_INTERRUPTS();													\
 	__dsb( portSY_FULL_READ_WRITE );											\
 	__isb( portSY_FULL_READ_WRITE );											\
 }
@@ -93,18 +102,19 @@ void vTaskSwitchContext( void );
 extern void vPortEnterCritical( void );
 extern void vPortExitCritical( void );
 									
-//临界区
+/*******************临界区***********************/
+
 #ifndef portFORCE_INLINE
 	#define portFORCE_INLINE __forceinline
 #endif
-									
+//没有返回值,不能嵌套使用			
 #define portDISABLE_INTERRUPTS()				vPortRaiseBASEPRI()
 #define portENABLE_INTERRUPTS()					vPortSetBASEPRI( 0 )
 
-
+//有返回值可以嵌套使用的开关中断
 #define portSET_INTERRUPT_MASK_FROM_ISR()		ulPortRaiseBASEPRI()
 #define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	vPortSetBASEPRI(x)
-
+//这个是临界区
 #define portENTER_CRITICAL()					vPortEnterCritical()
 #define portEXIT_CRITICAL()						vPortExitCritical()
 
@@ -152,7 +162,7 @@ static portFORCE_INLINE void vPortSetBASEPRI( uint32_t ulBASEPRI )
 }
 
 
-#if Jiao_Debug
+#if USE_TASK_MODE
 
 void Task_main(void);
 #endif

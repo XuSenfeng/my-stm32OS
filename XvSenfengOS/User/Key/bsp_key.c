@@ -17,6 +17,8 @@
   
 #include "./key/bsp_key.h"  
 extern struct Event_Flog EventFlog;
+extern struct SHEET * Mouse_sht, * Windoes_sht;
+extern Mouse_Message_Def Mouse_def;
 
 /**
   * @brief  配置按键中断函数的优先级
@@ -94,18 +96,26 @@ void Key_TouchEventHandler(int i)
 	
 		if(i==KEY1_DOWN)
 		{
+			//KAY1按下,在这里设置处理
+			
 			printf("Key1 down\n");
 		}
 		if(i==KEY1_UP)
 		{
+			//KAY1抬起,在这里设置处理
+
 			printf("Key1 up\n");
 		}
 		if(i==KEY2_DOWN)
-		{
+		{	
+			//KAY2按下,在这里设置处理
+			sheet_slide(Windoes_sht, Mouse_def.x, Mouse_def.y);
 			printf("Key2 down\n");
 		}
 		if(i==KEY2_UP)
 		{
+			//KAY2抬起,在这里设置处理
+
 			printf("Key2 up\n");
 		}				
 	
